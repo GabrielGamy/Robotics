@@ -1,0 +1,38 @@
+# ROS 2 / colcon build artifacts
+**/build/
+**/install/
+**/log/
+
+# Python
+**/__pycache__/
+**/*.py[cod]
+**/*.so
+**/.pytest_cache/
+**/.mypy_cache/
+**/.ruff_cache/
+**/.coverage
+**/htmlcov/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Editor and OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Packaging artifacts
+**/*.egg-info/
+**/.eggs/
+**/dist/
+**/build_lib/
+
+# Local environment files
+**/.env
+**/.env.*
+
+# Docs
+.~lock.toy_robots-architecture.odt#
