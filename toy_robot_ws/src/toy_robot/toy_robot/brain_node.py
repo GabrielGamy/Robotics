@@ -14,27 +14,43 @@ class BrainNode(Node):
         )
 
         self.state = "SEARCHING"
+        self.object_detected = None
+
+        self.timer = self.create_timer(2.0, self.run_state_machine)
 
     def listener_callback(self, msg):
-        detected = msg.data
+        if msg.data != "nothing":
+            self.object_detected = msg.data
 
-        if detected != "nothing":
-            self.state = "OBJECT_DETECTED"
-            self.get_logger().info(f"Found: {detected}")
-        else:
+    def run_state_machine(self):
+        if self.state == "SEARCHING":
+            self.get_logger().info("Searching for objects...")
+            if self.object_detected:
+                self.state = "OBJECT_DETECTED"
+
+        elif self.state == "OBJECT_DETECTED":
+            self.get_logger().info(f"Object detected: {self.object_detected}")
+            self.state = "GO_TO_OBJECT"
+
+        elif self.state == "GO_TO_OBJECT":
+            self.get_logger().info("Moving to object...")
+            self.state = "PICK"
+
+        elif self.state == "PICK":
+            self.get_logger().info("Picking object...")
+            self.state = "GO_TO_BOX"
+
+        elif self.state == "GO_TO_BOX":
+            self.get_logger().info("Moving to box...")
+            self.state = "DROP"
+
+        elif self.state == "DROP":
+            self.get_logger().info("Dropping object...")
+            self.object_detected = None
             self.state = "SEARCHING"
-            self.get_logger().info("Still searching...")
 
-    def run_cycle(self):
-        msg = String()
-        msg.data = f"State: {self.state}"
-
-        self.get_logger().info(msg.data)
-        self.publisher_.publish(msg)
-
-def main(args=None):
-    rclpy.init(args=args)
+def main():
+    rclpy.init()
     node = BrainNode()
     rclpy.spin(node)
-    node.destroy_node()
     rclpy.shutdown()
