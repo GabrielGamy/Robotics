@@ -10,7 +10,6 @@ from toy_robot.behavior.brain_controller import BrainController
 from toy_robot.models.target import Target
 from toy_robot.tf.transformer import CoordinateTransformer
 
-
 class BrainNode(Node):
     """ROS2 node for robot behavior control."""
 
@@ -21,10 +20,12 @@ class BrainNode(Node):
         # Declare parameters from launch file
         self.declare_parameter('box_x', 0.0)
         self.declare_parameter('box_y', 0.0)
+        self.declare_parameter('stop_distance', 0.3)
 
         # Get parameter values
         box_x = self.get_parameter('box_x').value
         box_y = self.get_parameter('box_y').value
+        self.stop_distance = self.get_parameter('stop_distance').value
 
         # ROS infrastructure
         self.subscription = self.create_subscription(
@@ -74,7 +75,8 @@ class BrainNode(Node):
         elif state == 'GO_TO_OBJECT':
             self.get_logger().info(f'🚗 Going to {self.brain.target}')
             self._send_navigation_goal(
-                self.brain.target.x, self.brain.target.y)
+                self.brain.target.x, self.brain.target.y,
+                stop_distance=self.stop_distance)
 
         elif state == 'WAIT_NAVIGATION':
             self.get_logger().info('⏳ Waiting for navigation...')
@@ -96,14 +98,29 @@ class BrainNode(Node):
             self.get_logger().info('🧺 Dropping object...')
             self.brain.on_drop_completed()
 
-    def _send_navigation_goal(self, x, y):
+    def _send_navigation_goal(self, x, y, stop_distance=0.0):
         """Send a navigation goal to Nav2."""
+        goal_x, goal_y = x, y
+        qz = 0.0
+        qw = 1.0
+
+        # Face the original target; optionally stop before it.
+        robot_position = self.tf_transformer.lookup_robot_position()
+        if robot_position is not None:
+            robot_x, robot_y = robot_position
+            if stop_distance > 0.0:
+                goal_x, goal_y = self.tf_transformer.approach_position(
+                    robot_x, robot_y, x, y, stop_distance)
+            qz, qw = self.tf_transformer.quaternion_to_face_target(
+                robot_x, robot_y, x, y)
+
         goal_msg = NavigateToPose.Goal()
         goal_msg.pose = PoseStamped()
         goal_msg.pose.header.frame_id = 'map'
-        goal_msg.pose.pose.position.x = x
-        goal_msg.pose.pose.position.y = y
-        goal_msg.pose.pose.orientation.w = 1.0
+        goal_msg.pose.pose.position.x = goal_x
+        goal_msg.pose.pose.position.y = goal_y
+        goal_msg.pose.pose.orientation.z = qz
+        goal_msg.pose.pose.orientation.w = qw
 
         self._action_client.wait_for_server()
         send_goal_future = self._action_client.send_goal_async(goal_msg)

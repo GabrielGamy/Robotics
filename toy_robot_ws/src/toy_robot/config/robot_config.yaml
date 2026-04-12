@@ -9,6 +9,7 @@ brain:
   # State machine timers and thresholds
   cycle_time_ms: 2000  # Main state machine cycle time (2 seconds)
   tf_timeout_ms: 1000  # TF lookup timeout
+  stop_distance_m: 0.3  # Distance (metres) to stop before the object
   
   # Drop-off box coordinates (map frame)
   box_position:
