@@ -4,12 +4,18 @@
   <!-- Arguments avec valeurs par défaut -->
   <arg name="box_x" default="0.0" description="Box drop-off X position in map frame"/>
   <arg name="box_y" default="0.0" description="Box drop-off Y position in map frame"/>
+  <arg name="search_spin_yaw" default="1.5708" description="Search spin angle in radians"/>
+  <arg name="search_spin_time_allowance_sec" default="10.0" description="Max allowed time for each spin action"/>
+  <arg name="max_search_attempts" default="8" description="Maximum number of consecutive search spins"/>
   <arg name="sim" default="true" description="Run in simulation mode"/>
 
   <!-- Brain node -->
   <node pkg="toy_robot" exec="brain_node" name="brain_node" output="screen">
     <param name="box_x" value="$(var box_x)"/>
     <param name="box_y" value="$(var box_y)"/>
+    <param name="search_spin_yaw" value="$(var search_spin_yaw)"/>
+    <param name="search_spin_time_allowance_sec" value="$(var search_spin_time_allowance_sec)"/>
+    <param name="max_search_attempts" value="$(var max_search_attempts)"/>
   </node>
 
   <!-- Perception node -->

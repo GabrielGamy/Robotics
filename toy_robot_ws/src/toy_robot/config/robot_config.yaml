@@ -10,6 +10,9 @@ brain:
   cycle_time_ms: 2000  # Main state machine cycle time (2 seconds)
   tf_timeout_ms: 1000  # TF lookup timeout
   stop_distance_m: 0.3  # Distance (metres) to stop before the object
+  search_spin_yaw: 1.5708  # Spin angle per search step (rad)
+  search_spin_time_allowance_sec: 10.0  # Timeout per spin action (sec)
+  max_search_attempts: 8  # Max spin attempts before resetting search cycle
   
   # Drop-off box coordinates (map frame)
   box_position:
