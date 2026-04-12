@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<launch>
+
+  <!-- Arguments avec valeurs par défaut -->
+  <arg name="box_x" default="0.0" description="Box drop-off X position in map frame"/>
+  <arg name="box_y" default="0.0" description="Box drop-off Y position in map frame"/>
+  <arg name="sim" default="true" description="Run in simulation mode"/>
+
+  <!-- Brain node -->
+  <node pkg="toy_robot" exec="brain_node" name="brain_node" output="screen">
+    <param name="box_x" value="$(var box_x)"/>
+    <param name="box_y" value="$(var box_y)"/>
+  </node>
+
+  <!-- Perception node -->
+  <node pkg="toy_robot" exec="perception_node" name="perception_node" output="screen"/>
+
+</launch>

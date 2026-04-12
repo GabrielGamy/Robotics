@@ -1,27 +1,128 @@
 # Toy Robot Workspace (ROS 2)
 
-Ce workspace contient le package `toy_robot`.
+This workspace contains the `toy_robot` ROS 2 package.
 
-## Workflow rapide apres chaque changement
+## Build And Run Workflow
 
-1. Sauvegarder le fichier.
-2. Dans `toy_robot_ws`, rebuild le package.
-3. Recharger l'environnement.
-4. Relancer le noeud concerne.
+After each code change, use this workflow:
 
-Commandes:
+1. Save the file.
+2. Rebuild the package.
+3. Reload the environment.
+4. Restart the node you want to test.
 
-cd <root>/src/robotics/toy_robot_ws
+Commands:
+
+```bash
+cd /home/gabrielgamy/src/robotics/toy_robot_ws
 colcon build --packages-select toy_robot --symlink-install
 source install/setup.bash
+```
+
+Notes:
+
+- Open a new terminal: run `source install/setup.bash` again.
+- If you modify `setup.py`, `package.xml`, add a new node, or add launch/config files, rebuild and source again.
+- `--symlink-install` is recommended during development so Python source changes are reflected more easily.
+
+## Launch The Project
+
+Launch the full toy robot stack:
+
+```bash
+cd /home/gabrielgamy/src/robotics/toy_robot_ws
+source install/setup.bash
+ros2 launch toy_robot robot.launch.xml
+```
+
+Launch with custom box coordinates:
+
+```bash
+ros2 launch toy_robot robot.launch.xml box_x:=1.5 box_y:=-0.5
+```
+
+If you are using TurtleBot3 with Nav2 simulation, start the simulation stack separately:
+
+```bash
+export RMW_FASTRTPS_TRANSPORT=udp
+export TURTLEBOT3_MODEL=burger
+ros2 launch nav2_bringup tb3_simulation_launch.py slam:=True
+```
+
+## Run Individual Nodes
+
+Run the brain node:
+
+```bash
+cd /home/gabrielgamy/src/robotics/toy_robot_ws
+source install/setup.bash
 ros2 run toy_robot brain_node
+```
 
-Exemples de relance de noeud:
+Run the perception node:
 
+```bash
+cd /home/gabrielgamy/src/robotics/toy_robot_ws
+source install/setup.bash
 ros2 run toy_robot perception_node
-ros2 run toy_robot fake_navigation_server
+```
 
-## Notes utiles
+## Run Tests
 
-- Ouvrir un nouveau terminal => relancer `source install/setup.bash`.
-- Si tu modifies `setup.py`, `package.xml`, ou ajoutes un nouveau noeud: rebuild + source obligatoires.
+Run all tests for the package:
+
+```bash
+cd /home/gabrielgamy/src/robotics/toy_robot_ws
+colcon test --packages-select toy_robot
+colcon test-result --verbose
+```
+
+Run the Python unit tests directly with pytest:
+
+```bash
+cd /home/gabrielgamy/src/robotics/toy_robot_ws/src/toy_robot
+python3 -m pytest test/test_brain_controller.py -v
+```
+
+## Project Structure
+
+Main workspace layout:
+
+```text
+toy_robot_ws/
+├── src/
+│   └── toy_robot/
+│       ├── config/
+│       ├── launch/
+│       ├── test/
+│       └── toy_robot/
+│           ├── behavior/
+│           ├── models/
+│           ├── tf/
+│           ├── brain_node.py
+│           └── perception_node.py
+├── build/
+├── install/
+└── log/
+```
+
+Code organization:
+
+- `toy_robot/brain_node.py`: ROS 2 node that subscribes to detections, handles navigation goals, and connects ROS interfaces to the behavior layer.
+- `toy_robot/perception_node.py`: simple perception simulator publishing detected object positions.
+- `toy_robot/behavior/brain_controller.py`: pure state-machine logic for the robot behavior.
+- `toy_robot/models/target.py`: data model for a detected target.
+- `toy_robot/tf/transformer.py`: helper for TF coordinate transformations.
+- `launch/robot.launch.xml`: XML launch file to start the system.
+- `config/robot_config.yaml`: runtime configuration values.
+- `test/test_brain_controller.py`: unit tests for the behavior logic.
+
+## Current Behavior Summary
+
+The project currently follows this simplified flow:
+
+1. `perception_node` publishes a detected object position.
+2. `brain_node` transforms the point into the `map` frame.
+3. The behavior controller switches from `SEARCHING` to `GO_TO_OBJECT`.
+4. The brain sends a `NavigateToPose` goal.
+5. After navigation completes, the robot simulates pick, go-to-box, and drop transitions.

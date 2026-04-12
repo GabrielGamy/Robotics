@@ -1,118 +1,144 @@
 import rclpy
-from rclpy.node import Node
-from std_msgs.msg import String
-from rclpy.action import ActionClient
 from geometry_msgs.msg import Point, PoseStamped
 from nav2_msgs.action import NavigateToPose
+from rclpy.action import ActionClient
+from rclpy.executors import ExternalShutdownException
+from rclpy.node import Node
+from tf2_ros import Buffer, TransformListener
+
+from toy_robot.behavior.brain_controller import BrainController
+from toy_robot.models.target import Target
+from toy_robot.tf.transformer import CoordinateTransformer
+
 
 class BrainNode(Node):
+    """ROS2 node for robot behavior control."""
+
     def __init__(self):
+        """Initialize brain node."""
         super().__init__('brain_node')
 
+        # Declare parameters from launch file
+        self.declare_parameter('box_x', 0.0)
+        self.declare_parameter('box_y', 0.0)
+
+        # Get parameter values
+        box_x = self.get_parameter('box_x').value
+        box_y = self.get_parameter('box_y').value
+
+        # ROS infrastructure
         self.subscription = self.create_subscription(
             Point,
             'detected_object_position',
             self.object_callback,
             10
-        )        
-        self.state = "SEARCHING"
-        self.timer = self.create_timer(2.0, self.run_state_machine)          
-        self._action_client = ActionClient(self, NavigateToPose, 'navigate_to_pose')   
-  
+        )
+        self.timer = self.create_timer(2.0, self.run_state_machine)
+        self._action_client = ActionClient(
+            self, NavigateToPose, 'navigate_to_pose')
+
+        # TF2
+        self.tf_buffer = Buffer()
+        self.tf_listener = TransformListener(self.tf_buffer, self)
+
+        # Logic layer (pure, testable)
+        self.brain = BrainController(box_x=box_x, box_y=box_y)
+        self.tf_transformer = CoordinateTransformer(
+            self.tf_buffer, self.get_logger())
+
+        self.get_logger().info(
+            f'🤖 Brain initialized with box at ({box_x}, {box_y})')
+
     def object_callback(self, msg):
-        if self.state != "SEARCHING":
+        """Handle detected object position from perception."""
+        # Transform point from camera frame to map frame
+        result = self.tf_transformer.point_to_map(msg, 'camera_link')
+
+        if result is None:
             return
 
-        self.target_x = msg.x
-        self.target_y = msg.y
-        self.state = "GO_TO_OBJECT"
+        x, y = result
+        target = Target(x=x, y=y, source='camera')
+
+        # Notify brain controller
+        if self.brain.on_object_detected(target):
+            self.get_logger().info(f'🧭 Target acquired: {target}')
 
     def run_state_machine(self):
-        if self.state == "SEARCHING":
-            self.get_logger().info("🔍 Searching for objects...")
+        """Execute state machine transitions."""
+        state = self.brain.state.value
 
-            if hasattr(self, 'target_x'):
-                self.state = "GO_TO_OBJECT"
+        if state == 'SEARCHING':
+            self.get_logger().info('🔍 Searching for objects...')
 
-        elif self.state == "GO_TO_OBJECT":
-            self.get_logger().info(f"🚗 Going to ({self.target_x:.2f}, {self.target_y:.2f})")
+        elif state == 'GO_TO_OBJECT':
+            self.get_logger().info(f'🚗 Going to {self.brain.target}')
+            self._send_navigation_goal(
+                self.brain.target.x, self.brain.target.y)
 
-            goal_msg = NavigateToPose.Goal()
+        elif state == 'WAIT_NAVIGATION':
+            self.get_logger().info('⏳ Waiting for navigation...')
 
-            goal_msg.pose = PoseStamped()
-            goal_msg.pose.header.frame_id = 'map'
-            goal_msg.pose.pose.position.x = self.target_x
-            goal_msg.pose.pose.position.y = self.target_y
-            goal_msg.pose.pose.orientation.w = 1.0
+        elif state == 'PICK':
+            self.get_logger().info('🤖 Picking object...')
+            self.brain.on_pick_completed()
 
-            self._action_client.wait_for_server()
+        elif state == 'GO_TO_BOX':
+            self.get_logger().info(
+                f'📦 Moving to box ({self.brain.box_x:.1f}, '
+                f'{self.brain.box_y:.1f})')
+            self._send_navigation_goal(self.brain.box_x, self.brain.box_y)
 
-            send_goal_future = self._action_client.send_goal_async(goal_msg)
-            send_goal_future.add_done_callback(self.goal_response_callback)
+        elif state == 'WAIT_NAVIGATION_TO_BOX':
+            self.get_logger().info('⏳ Going to box...')
 
-            self.state = "WAIT_NAVIGATION"
+        elif state == 'DROP':
+            self.get_logger().info('🧺 Dropping object...')
+            self.brain.on_drop_completed()
 
-        elif self.state == "WAIT_NAVIGATION":
-            self.get_logger().info("⏳ Waiting for navigation...")
+    def _send_navigation_goal(self, x, y):
+        """Send a navigation goal to Nav2."""
+        goal_msg = NavigateToPose.Goal()
+        goal_msg.pose = PoseStamped()
+        goal_msg.pose.header.frame_id = 'map'
+        goal_msg.pose.pose.position.x = x
+        goal_msg.pose.pose.position.y = y
+        goal_msg.pose.pose.orientation.w = 1.0
 
-        elif self.state == "PICK":
-            self.get_logger().info("🤖 Picking object...")
-            self.state = "GO_TO_BOX"
-
-        elif self.state == "GO_TO_BOX":
-            self.get_logger().info("📦 Moving to box...")
-
-            # 👉 pour l’instant on simule une position fixe
-            goal_msg = NavigateToPose.Goal()
-
-            goal_msg.pose = PoseStamped()
-            goal_msg.pose.header.frame_id = 'map'
-            goal_msg.pose.pose.position.x = 0.0
-            goal_msg.pose.pose.position.y = 0.0
-            goal_msg.pose.pose.orientation.w = 1.0
-
-            send_goal_future = self._action_client.send_goal_async(goal_msg)
-            send_goal_future.add_done_callback(self.goal_response_callback)
-
-            self.state = "WAIT_NAVIGATION_TO_BOX"
-
-        elif self.state == "WAIT_NAVIGATION_TO_BOX":
-            self.get_logger().info("⏳ Going to box...")
-
-        elif self.state == "DROP":
-            self.get_logger().info("🧺 Dropping object...")
-
-            del self.target_x
-            del self.target_y
-
-            self.state = "SEARCHING"
+        self._action_client.wait_for_server()
+        send_goal_future = self._action_client.send_goal_async(goal_msg)
+        send_goal_future.add_done_callback(self.goal_response_callback)
 
     def goal_response_callback(self, future):
+        """Handle Nav2 goal response."""
         goal_handle = future.result()
 
         if not goal_handle.accepted:
-            self.get_logger().info("❌ Goal rejected")
-            self.state = "SEARCHING"
+            self.get_logger().info('❌ Goal rejected')
+            self.brain.on_navigation_rejected()
             return
 
-        self.get_logger().info("✅ Goal accepted")
+        self.get_logger().info('✅ Goal accepted')
+        self.brain.on_navigation_accepted()
 
         get_result_future = goal_handle.get_result_async()
         get_result_future.add_done_callback(self.get_result_callback)
 
     def get_result_callback(self, future):
-        result = future.result().result
+        """Handle Nav2 goal completion."""
+        future.result().result
+        self.get_logger().info('🏁 Navigation finished!')
+        self.brain.on_navigation_finished()
 
-        self.get_logger().info(f"🏁 Navigation finished! - Current state: {self.state}")
-
-        if self.state == "WAIT_NAVIGATION":
-            self.state = "PICK"
-
-        elif self.state == "WAIT_NAVIGATION_TO_BOX":
-            self.state = "DROP"
 
 def main():
+    """Entry point."""
     rclpy.init()
     node = BrainNode()
-    rclpy.spin(node)
-    rclpy.shutdown()
+    try:
+        rclpy.spin(node)
+    except (KeyboardInterrupt, ExternalShutdownException):
+        pass
+    finally:
+        node.destroy_node()
+        rclpy.shutdown()

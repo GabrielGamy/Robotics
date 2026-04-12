@@ -1,0 +1,27 @@
+# Toy Robot Configuration
+# Parameters for brain and perception nodes
+
+brain:
+  # TF frame names
+  source_frame: "camera_link"
+  target_frame: "map"
+  
+  # State machine timers and thresholds
+  cycle_time_ms: 2000  # Main state machine cycle time (2 seconds)
+  tf_timeout_ms: 1000  # TF lookup timeout
+  
+  # Drop-off box coordinates (map frame)
+  box_position:
+    x: 0.0
+    y: 0.0
+
+perception:
+  # Publishing parameters
+  publish_rate_hz: 1  # How often to detect (1 Hz = 10 seconds between detections)
+  
+  # Detection range in map frame
+  detection_range:
+    x_min: 0.5
+    x_max: 2.0
+    y_min: -1.0
+    y_max: 1.0
