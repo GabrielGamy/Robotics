@@ -12,15 +12,29 @@ class PerceptionNode(Node):
         """Initialize perception node."""
         super().__init__('perception_node')
 
+        self.declare_parameter('publish_rate_hz', 0.1)
+        self.declare_parameter('detection_x_min', 0.5)
+        self.declare_parameter('detection_x_max', 2.0)
+        self.declare_parameter('detection_y_min', -1.0)
+        self.declare_parameter('detection_y_max', 1.0)
+
+        publish_rate_hz = float(self.get_parameter('publish_rate_hz').value)
+        self.detection_x_min = float(self.get_parameter('detection_x_min').value)
+        self.detection_x_max = float(self.get_parameter('detection_x_max').value)
+        self.detection_y_min = float(self.get_parameter('detection_y_min').value)
+        self.detection_y_max = float(self.get_parameter('detection_y_max').value)
+
+        period_sec = 1.0 / max(publish_rate_hz, 0.01)
+
         self.publisher_ = self.create_publisher(
             Point, 'detected_object_position', 10)
-        self.timer = self.create_timer(10.0, self.detect_object)
+        self.timer = self.create_timer(period_sec, self.detect_object)
 
     def detect_object(self):
         """Simulate object detection."""
         msg = Point()
-        msg.x = random.uniform(0.5, 2.0)
-        msg.y = random.uniform(-1.0, 1.0)
+        msg.x = random.uniform(self.detection_x_min, self.detection_x_max)
+        msg.y = random.uniform(self.detection_y_min, self.detection_y_max)
         msg.z = 0.0
 
         self.get_logger().info(

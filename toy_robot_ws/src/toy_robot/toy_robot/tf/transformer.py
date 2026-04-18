@@ -19,13 +19,20 @@ class CoordinateTransformer:
         self.tf_buffer = tf_buffer
         self.logger = logger
 
-    # Transform a detected point into the global map frame.
-    def point_to_map(self, point_msg, source_frame, timeout_seconds=1.0):
-        """Transform a Point from source_frame to 'map' frame.
+    # Transform a detected point between configured TF frames.
+    def point_to_map(
+        self,
+        point_msg,
+        source_frame,
+        target_frame='map',
+        timeout_seconds=1.0,
+    ):
+        """Transform a Point from source_frame to target_frame.
 
         Args:
             point_msg: geometry_msgs.msg.Point
             source_frame: source frame name (e.g., 'camera_link')
+            target_frame: destination frame name (e.g., 'map')
             timeout_seconds: timeout for TF lookup
 
         Returns:
@@ -41,7 +48,7 @@ class CoordinateTransformer:
 
             timeout = rclpy.duration.Duration(seconds=timeout_seconds)
             transformed = self.tf_buffer.transform(
-                point_stamped, 'map', timeout=timeout)
+                point_stamped, target_frame, timeout=timeout)
 
             return (transformed.point.x, transformed.point.y)
 

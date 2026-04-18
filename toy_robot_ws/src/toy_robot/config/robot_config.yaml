@@ -1,31 +1,30 @@
-# Toy Robot Configuration
-# Parameters for brain and perception nodes
+brain_node:
+  ros__parameters:
+    # TF frame names
+    source_frame: camera_link
+    target_frame: map
 
-brain:
-  # TF frame names
-  source_frame: "camera_link"
-  target_frame: "map"
-  
-  # State machine timers and thresholds
-  cycle_time_ms: 2000  # Main state machine cycle time (2 seconds)
-  tf_timeout_ms: 1000  # TF lookup timeout
-  stop_distance_m: 0.3  # Distance (metres) to stop before the object
-  search_spin_yaw: 1.5708  # Spin angle per search step (rad)
-  search_spin_time_allowance_sec: 10.0  # Timeout per spin action (sec)
-  max_search_attempts: 8  # Max spin attempts before resetting search cycle
-  
-  # Drop-off box coordinates (map frame)
-  box_position:
-    x: 0.0
-    y: 0.0
+    # Timers and thresholds
+    cycle_time_ms: 2000
+    tf_timeout_ms: 1000
+    stop_distance: 0.3
 
-perception:
-  # Publishing parameters
-  publish_rate_hz: 1  # How often to detect (1 Hz = 10 seconds between detections)
-  
-  # Detection range in map frame
-  detection_range:
-    x_min: 0.5
-    x_max: 2.0
-    y_min: -1.0
-    y_max: 1.0
+    # Search spin behavior
+    search_spin_yaw: 1.5708
+    search_spin_time_allowance_sec: 10.0
+    max_search_attempts: 8
+
+    # Drop-off box coordinates (target frame)
+    box_x: 0.0
+    box_y: 0.0
+
+perception_node:
+  ros__parameters:
+    # Publish at 0.1 Hz -> one detection every 10 seconds.
+    publish_rate_hz: 0.1
+
+    # Detection range in source frame
+    detection_x_min: 0.5
+    detection_x_max: 2.0
+    detection_y_min: -1.0
+    detection_y_max: 1.0

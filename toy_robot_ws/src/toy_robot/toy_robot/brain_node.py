@@ -21,6 +21,10 @@ class BrainNode(Node):
         super().__init__('brain_node')
 
         # Declare parameters from launch file
+        self.declare_parameter('source_frame', 'camera_link')
+        self.declare_parameter('target_frame', 'map')
+        self.declare_parameter('cycle_time_ms', 2000)
+        self.declare_parameter('tf_timeout_ms', 1000)
         self.declare_parameter('box_x', 0.0)
         self.declare_parameter('box_y', 0.0)
         self.declare_parameter('stop_distance', 0.3)
@@ -29,6 +33,10 @@ class BrainNode(Node):
         self.declare_parameter('max_search_attempts', 8)
 
         # Get parameter values
+        self.source_frame = self.get_parameter('source_frame').value
+        self.target_frame = self.get_parameter('target_frame').value
+        cycle_time_ms = self.get_parameter('cycle_time_ms').value
+        tf_timeout_ms = self.get_parameter('tf_timeout_ms').value
         box_x = self.get_parameter('box_x').value
         box_y = self.get_parameter('box_y').value
         self.stop_distance = self.get_parameter('stop_distance').value
@@ -37,6 +45,8 @@ class BrainNode(Node):
             'search_spin_time_allowance_sec').value
         self.max_search_attempts = self.get_parameter(
             'max_search_attempts').value
+        self.cycle_time_sec = float(cycle_time_ms) / 1000.0
+        self.tf_timeout_sec = float(tf_timeout_ms) / 1000.0
 
         # ROS infrastructure
         self.subscription = self.create_subscription(
@@ -45,7 +55,7 @@ class BrainNode(Node):
             self.object_callback,
             10
         )
-        self.timer = self.create_timer(2.0, self.run_state_machine)
+        self.timer = self.create_timer(self.cycle_time_sec, self.run_state_machine)
         self._action_client = ActionClient(
             self, NavigateToPose, 'navigate_to_pose')
         self._spin_client = ActionClient(self, Spin, 'spin')
@@ -66,12 +76,19 @@ class BrainNode(Node):
             self.tf_buffer, self.get_logger())
 
         self.get_logger().info(
-            f'🤖 Brain initialized with box at ({box_x}, {box_y})')
+            f'🤖 Brain initialized with box at ({box_x}, {box_y}), '
+            f'frames=({self.source_frame}->{self.target_frame}), '
+            f'cycle={self.cycle_time_sec:.2f}s')
 
     def object_callback(self, msg):
         """Handle detected object position from perception."""
         # Transform point from camera frame to map frame
-        result = self.tf_transformer.point_to_map(msg, 'camera_link')
+        result = self.tf_transformer.point_to_map(
+            msg,
+            self.source_frame,
+            target_frame=self.target_frame,
+            timeout_seconds=self.tf_timeout_sec,
+        )
 
         if result is None:
             return
@@ -138,7 +155,10 @@ class BrainNode(Node):
         qw = 1.0
 
         # Face the original target; optionally stop before it.
-        robot_position = self.tf_transformer.lookup_robot_position()
+        robot_position = self.tf_transformer.lookup_robot_position(
+            target_frame=self.target_frame,
+            timeout_seconds=self.tf_timeout_sec,
+        )
         if robot_position is not None:
             robot_x, robot_y = robot_position
             if stop_distance > 0.0:
@@ -149,7 +169,7 @@ class BrainNode(Node):
 
         goal_msg = NavigateToPose.Goal()
         goal_msg.pose = PoseStamped()
-        goal_msg.pose.header.frame_id = 'map'
+        goal_msg.pose.header.frame_id = self.target_frame
         goal_msg.pose.pose.position.x = goal_x
         goal_msg.pose.pose.position.y = goal_y
         goal_msg.pose.pose.orientation.z = qz
