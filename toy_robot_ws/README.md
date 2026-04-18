@@ -38,7 +38,15 @@ ros2 launch toy_robot robot.launch.xml
 Launch with custom box coordinates:
 
 ```bash
-ros2 launch toy_robot robot.launch.xml box_x:=1.5 box_y:=-0.5
+# Option 1: use the default config file
+ros2 launch toy_robot robot.launch.xml
+
+# Option 2: launch with a custom config file (recommended)
+# Create a copy and change:
+# brain_node.ros__parameters.box_x
+# brain_node.ros__parameters.box_y
+cp src/toy_robot/config/robot_config.yaml /tmp/robot_config_custom.yaml
+ros2 launch toy_robot robot.launch.xml config_file:=/tmp/robot_config_custom.yaml
 ```
 
 If you are using TurtleBot3 with Nav2 simulation, start the simulation stack separately:
@@ -84,12 +92,20 @@ cd /home/gabrielgamy/src/robotics/toy_robot_ws/src/toy_robot
 python3 -m pytest test/test_brain_controller.py -v
 ```
 
+## Documentation
+
+Detailed design and debugging references are in the dedicated docs folder:
+
+- `docs/architecture.md`: architecture, responsibilities, and data flow.
+- `docs/rviz_debug.md`: RViz setup, marker semantics, and debug checklist.
+
 ## Project Structure
 
 Main workspace layout:
 
 ```text
 toy_robot_ws/
+├── docs/
 ├── src/
 │   └── toy_robot/
 │       ├── config/
@@ -99,6 +115,7 @@ toy_robot_ws/
 │           ├── behavior/
 │           ├── models/
 │           ├── tf/
+│           ├── visualization/
 │           ├── brain_node.py
 │           └── perception_node.py
 ├── build/
@@ -113,9 +130,12 @@ Code organization:
 - `toy_robot/behavior/brain_controller.py`: pure state-machine logic for the robot behavior.
 - `toy_robot/models/target.py`: data model for a detected target.
 - `toy_robot/tf/transformer.py`: helper for TF coordinate transformations.
+- `toy_robot/visualization/marker_visualizer.py`: RViz marker publisher for target/goal debug visualization.
 - `launch/robot.launch.xml`: XML launch file to start the system.
 - `config/robot_config.yaml`: runtime configuration values.
 - `test/test_brain_controller.py`: unit tests for the behavior logic.
+- `docs/architecture.md`: architecture and separation-of-concerns documentation.
+- `docs/rviz_debug.md`: RViz visualization setup and troubleshooting guide.
 
 ## Current Behavior Summary
 

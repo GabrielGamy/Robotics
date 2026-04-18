@@ -10,8 +10,10 @@ from rclpy.node import Node
 from tf2_ros import Buffer, TransformListener
 
 from toy_robot.behavior.brain_controller import BrainController
+from toy_robot.config.node_config import BrainNodeConfig, MarkerConfig
 from toy_robot.models.target import Target
 from toy_robot.tf.transformer import CoordinateTransformer
+from toy_robot.visualization.marker_visualizer import MarkerVisualizer
 
 class BrainNode(Node):
     """ROS2 node for robot behavior control."""
@@ -20,33 +22,18 @@ class BrainNode(Node):
         """Initialize brain node."""
         super().__init__('brain_node')
 
-        # Declare parameters from launch file
-        self.declare_parameter('source_frame', 'camera_link')
-        self.declare_parameter('target_frame', 'map')
-        self.declare_parameter('cycle_time_ms', 2000)
-        self.declare_parameter('tf_timeout_ms', 1000)
-        self.declare_parameter('box_x', 0.0)
-        self.declare_parameter('box_y', 0.0)
-        self.declare_parameter('stop_distance', 0.3)
-        self.declare_parameter('search_spin_yaw', math.pi / 2.0)
-        self.declare_parameter('search_spin_time_allowance_sec', 10.0)
-        self.declare_parameter('max_search_attempts', 8)
+        self._declare_parameters()
+        brain_node_config = self._load_parameters()
 
-        # Get parameter values
-        self.source_frame = self.get_parameter('source_frame').value
-        self.target_frame = self.get_parameter('target_frame').value
-        cycle_time_ms = self.get_parameter('cycle_time_ms').value
-        tf_timeout_ms = self.get_parameter('tf_timeout_ms').value
-        box_x = self.get_parameter('box_x').value
-        box_y = self.get_parameter('box_y').value
-        self.stop_distance = self.get_parameter('stop_distance').value
-        self.search_spin_yaw = self.get_parameter('search_spin_yaw').value
-        self.search_spin_time_allowance_sec = self.get_parameter(
-            'search_spin_time_allowance_sec').value
-        self.max_search_attempts = self.get_parameter(
-            'max_search_attempts').value
-        self.cycle_time_sec = float(cycle_time_ms) / 1000.0
-        self.tf_timeout_sec = float(tf_timeout_ms) / 1000.0
+        self.source_frame = brain_node_config.source_frame
+        self.target_frame = brain_node_config.target_frame
+        self.cycle_time_sec = brain_node_config.cycle_time_sec
+        self.tf_timeout_sec = brain_node_config.tf_timeout_sec
+        self.stop_distance = brain_node_config.stop_distance
+        self.search_spin_yaw = brain_node_config.search_spin_yaw
+        self.search_spin_time_allowance_sec = brain_node_config.search_spin_time_allowance_sec
+        self.max_search_attempts = brain_node_config.max_search_attempts
+        self.show_direction_line = brain_node_config.marker.show_direction_line
 
         # ROS infrastructure
         self.subscription = self.create_subscription(
@@ -56,8 +43,7 @@ class BrainNode(Node):
             10
         )
         self.timer = self.create_timer(self.cycle_time_sec, self.run_state_machine)
-        self._action_client = ActionClient(
-            self, NavigateToPose, 'navigate_to_pose')
+        self._action_client = ActionClient(self, NavigateToPose, 'navigate_to_pose')
         self._spin_client = ActionClient(self, Spin, 'spin')
         self._spin_goal_handle = None
         self._search_triggered = False
@@ -68,17 +54,111 @@ class BrainNode(Node):
 
         # Logic layer (pure, testable)
         self.brain = BrainController(
-            box_x=box_x,
-            box_y=box_y,
+            box_x=brain_node_config.box_x,
+            box_y=brain_node_config.box_y,
             max_search_attempts=self.max_search_attempts,
         )
+
         self.tf_transformer = CoordinateTransformer(
             self.tf_buffer, self.get_logger())
+        self.marker_visualizer = self._try_create_marker_visualizer(
+            brain_node_config.marker)
 
         self.get_logger().info(
-            f'🤖 Brain initialized with box at ({box_x}, {box_y}), '
+            f'🤖 Brain initialized with box at ('
+            f'{brain_node_config.box_x}, {brain_node_config.box_y}), '
             f'frames=({self.source_frame}->{self.target_frame}), '
             f'cycle={self.cycle_time_sec:.2f}s')
+
+    def _declare_parameters(self):
+        """Declare all ROS parameters with safe defaults."""
+        defaults = {
+            'source_frame': 'camera_link',
+            'target_frame': 'map',
+            'cycle_time_ms': 2000,
+            'tf_timeout_ms': 1000,
+            'box_x': 0.0,
+            'box_y': 0.0,
+            'stop_distance': 0.3,
+            'search_spin_yaw': math.pi / 2.0,
+            'search_spin_time_allowance_sec': 10.0,
+            'max_search_attempts': 8,
+            'visualization_enabled': True,
+            'marker_lifetime_sec': 0.0,
+            'target_marker_scale': 0.15,
+            'goal_marker_length': 0.35,
+            'goal_marker_width': 0.07,
+            'show_direction_line': True,
+            'direction_line_width': 0.03,
+        }
+        for name, value in defaults.items():
+            self.declare_parameter(name, value)
+
+    def _load_parameters(self):
+        """Read ROS parameters and convert them to typed runtime config."""
+        cycle_time_ms = self.get_parameter('cycle_time_ms').value
+        tf_timeout_ms = self.get_parameter('tf_timeout_ms').value
+
+        marker_config = MarkerConfig(
+            enabled=self.get_parameter('visualization_enabled').value,
+            lifetime_sec=self.get_parameter('marker_lifetime_sec').value,
+            target_scale=self.get_parameter('target_marker_scale').value,
+            goal_length=self.get_parameter('goal_marker_length').value,
+            goal_width=self.get_parameter('goal_marker_width').value,
+            show_direction_line=self.get_parameter('show_direction_line').value,
+            direction_line_width=self.get_parameter('direction_line_width').value,
+        )
+
+        return BrainNodeConfig(
+            source_frame=self.get_parameter('source_frame').value,
+            target_frame=self.get_parameter('target_frame').value,
+            cycle_time_sec=float(cycle_time_ms) / 1000.0,
+            tf_timeout_sec=float(tf_timeout_ms) / 1000.0,
+            box_x=self.get_parameter('box_x').value,
+            box_y=self.get_parameter('box_y').value,
+            stop_distance=self.get_parameter('stop_distance').value,
+            search_spin_yaw=self.get_parameter('search_spin_yaw').value,
+            search_spin_time_allowance_sec=self.get_parameter(
+                'search_spin_time_allowance_sec').value,
+            max_search_attempts=self.get_parameter('max_search_attempts').value,
+            marker=marker_config,
+        )
+
+    def _try_create_marker_visualizer(self, marker_config):
+        """Create marker visualizer when debug visualization is enabled."""
+        if not marker_config.enabled:
+            return None
+
+        return MarkerVisualizer(
+            self,
+            frame_id=self.target_frame,
+            topic='visualization_marker',
+            lifetime_sec=marker_config.lifetime_sec,
+            target_scale=marker_config.target_scale,
+            goal_length=marker_config.goal_length,
+            goal_width=marker_config.goal_width,
+            direction_line_width=marker_config.direction_line_width,
+        )
+
+    def _publish_detection_markers(self, x, y):
+        """Publish target and optional direction markers for debug."""
+        if self.marker_visualizer is None:
+            return
+
+        self.marker_visualizer.publish_target(x, y)
+
+        if not self.show_direction_line:
+            return
+
+        robot_position = self.tf_transformer.lookup_robot_position(
+            target_frame=self.target_frame,
+            timeout_seconds=self.tf_timeout_sec,
+        )
+        if robot_position is None:
+            return
+
+        robot_x, robot_y = robot_position
+        self.marker_visualizer.publish_direction_line(robot_x, robot_y, x, y)
 
     def object_callback(self, msg):
         """Handle detected object position from perception."""
@@ -95,6 +175,7 @@ class BrainNode(Node):
 
         x, y = result
         target = Target(x=x, y=y, source='camera')
+        self._publish_detection_markers(x, y)
 
         self._cancel_search_spin()
 
@@ -174,6 +255,9 @@ class BrainNode(Node):
         goal_msg.pose.pose.position.y = goal_y
         goal_msg.pose.pose.orientation.z = qz
         goal_msg.pose.pose.orientation.w = qw
+
+        if self.marker_visualizer is not None:
+            self.marker_visualizer.publish_goal(goal_x, goal_y, qz, qw)
 
         self._action_client.wait_for_server()
         send_goal_future = self._action_client.send_goal_async(goal_msg)
