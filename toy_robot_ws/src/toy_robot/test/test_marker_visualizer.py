@@ -120,3 +120,21 @@ class TestMarkerVisualizer:
 
         marker = self.node.publisher.published[-1]
         assert marker.lifetime.sec == 2
+
+    def test_remove_target_marker(self):
+        """Target marker deletion should publish a DELETE action."""
+        self.visualizer.remove_target_marker()
+
+        marker = self.node.publisher.published[-1]
+        assert marker.ns == 'target'
+        assert marker.id == 0
+        assert marker.action == Marker.DELETE
+
+    def test_remove_direction_marker(self):
+        """Direction marker deletion should publish a DELETE action."""
+        self.visualizer.remove_direction_marker()
+
+        marker = self.node.publisher.published[-1]
+        assert marker.ns == 'direction'
+        assert marker.id == 0
+        assert marker.action == Marker.DELETE

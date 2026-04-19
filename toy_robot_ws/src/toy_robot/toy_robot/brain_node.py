@@ -88,7 +88,7 @@ class BrainNode(Node):
             'box_x': 0.0,
             'box_y': 0.0,
             'stop_distance': 0.3,
-            'pick_distance_threshold': 0.4,
+            'pick_distance_threshold': 0.55,
             'pick_distance_margin': 0.15,
             'max_pick_reapproach_attempts': 3,
             'search_spin_yaw': math.pi / 2.0,
@@ -244,6 +244,7 @@ class BrainNode(Node):
                 return
 
             self.get_logger().info('🤖 Picking object...')
+            self._clear_target_visualization()
             self._pick_reapproach_attempts = 0
             self.brain.on_pick_completed()
 
@@ -338,6 +339,7 @@ class BrainNode(Node):
                 '⚠️ Pick failed after max re-approach attempts. '
                 'Dropping target and returning to SEARCHING.'
             )
+            self._clear_target_visualization()
             self._pick_reapproach_attempts = 0
             self.brain.on_pick_failed()
             self._search_triggered = False
@@ -360,6 +362,14 @@ class BrainNode(Node):
             )
 
         self.brain.on_pick_too_far()
+
+    def _clear_target_visualization(self):
+        """Clear target-related debug markers from RViz."""
+        if self.marker_visualizer is None:
+            return
+
+        self.marker_visualizer.remove_target_marker()
+        self.marker_visualizer.remove_direction_marker()
 
     def spin_goal_response_callback(self, future):
         """Handle spin goal response."""

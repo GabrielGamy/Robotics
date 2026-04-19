@@ -98,6 +98,24 @@ class MarkerVisualizer:
         marker.points = [start, end]
         self._pub.publish(marker)
 
+    def remove_target_marker(self):
+        """Remove target marker from RViz."""
+        self._delete_marker('target', 0)
+
+    def remove_direction_marker(self):
+        """Remove direction marker from RViz."""
+        self._delete_marker('direction', 0)
+
+    def _delete_marker(self, namespace, marker_id):
+        """Publish a DELETE marker for a namespace/id pair."""
+        marker = Marker()
+        marker.header.frame_id = self._frame_id
+        marker.header.stamp = self._node.get_clock().now().to_msg()
+        marker.ns = namespace
+        marker.id = int(marker_id)
+        marker.action = Marker.DELETE
+        self._pub.publish(marker)
+
     def _base_marker(self, namespace, marker_id, marker_type):
         """Build a marker with common header and lifecycle fields."""
         marker = Marker()

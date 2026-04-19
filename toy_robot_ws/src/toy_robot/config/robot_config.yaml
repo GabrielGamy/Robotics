@@ -8,7 +8,7 @@ brain_node:
     cycle_time_ms: 2000
     tf_timeout_ms: 1000
     stop_distance: 0.3
-    pick_distance_threshold: 0.4
+    pick_distance_threshold: 0.55
     pick_distance_margin: 0.15
     max_pick_reapproach_attempts: 3
 
