@@ -1,8 +1,9 @@
 import math
 
-import rclpy
+from action_msgs.msg import GoalStatus
 from geometry_msgs.msg import Point, PoseStamped
 from nav2_msgs.action import NavigateToPose, Spin
+import rclpy
 from rclpy.action import ActionClient
 from rclpy.duration import Duration
 from rclpy.executors import ExternalShutdownException
@@ -14,6 +15,7 @@ from toy_robot.config.node_config import BrainNodeConfig, MarkerConfig
 from toy_robot.models.target import Target
 from toy_robot.tf.transformer import CoordinateTransformer
 from toy_robot.visualization.marker_visualizer import MarkerVisualizer
+
 
 class BrainNode(Node):
     """ROS2 node for robot behavior control."""
@@ -30,10 +32,16 @@ class BrainNode(Node):
         self.cycle_time_sec = brain_node_config.cycle_time_sec
         self.tf_timeout_sec = brain_node_config.tf_timeout_sec
         self.stop_distance = brain_node_config.stop_distance
+        self.pick_distance_threshold = brain_node_config.pick_distance_threshold
+        self.pick_distance_margin = brain_node_config.pick_distance_margin
+        self.max_pick_reapproach_attempts = (
+            brain_node_config.max_pick_reapproach_attempts
+        )
         self.search_spin_yaw = brain_node_config.search_spin_yaw
         self.search_spin_time_allowance_sec = brain_node_config.search_spin_time_allowance_sec
         self.max_search_attempts = brain_node_config.max_search_attempts
         self.show_direction_line = brain_node_config.marker.show_direction_line
+        self._pick_reapproach_attempts = 0
 
         # ROS infrastructure
         self.subscription = self.create_subscription(
@@ -80,6 +88,9 @@ class BrainNode(Node):
             'box_x': 0.0,
             'box_y': 0.0,
             'stop_distance': 0.3,
+            'pick_distance_threshold': 0.4,
+            'pick_distance_margin': 0.15,
+            'max_pick_reapproach_attempts': 3,
             'search_spin_yaw': math.pi / 2.0,
             'search_spin_time_allowance_sec': 10.0,
             'max_search_attempts': 8,
@@ -117,6 +128,10 @@ class BrainNode(Node):
             box_x=self.get_parameter('box_x').value,
             box_y=self.get_parameter('box_y').value,
             stop_distance=self.get_parameter('stop_distance').value,
+            pick_distance_threshold=self.get_parameter('pick_distance_threshold').value,
+            pick_distance_margin=self.get_parameter('pick_distance_margin').value,
+            max_pick_reapproach_attempts=self.get_parameter(
+                'max_pick_reapproach_attempts').value,
             search_spin_yaw=self.get_parameter('search_spin_yaw').value,
             search_spin_time_allowance_sec=self.get_parameter(
                 'search_spin_time_allowance_sec').value,
@@ -162,6 +177,9 @@ class BrainNode(Node):
 
     def object_callback(self, msg):
         """Handle detected object position from perception."""
+        if not self.brain.can_accept_detection():
+            return
+
         # Transform point from camera frame to map frame
         result = self.tf_transformer.point_to_map(
             msg,
@@ -175,12 +193,12 @@ class BrainNode(Node):
 
         x, y = result
         target = Target(x=x, y=y, source='camera')
-        self._publish_detection_markers(x, y)
-
-        self._cancel_search_spin()
 
         # Notify brain controller
         if self.brain.on_object_detected(target):
+            self._publish_detection_markers(x, y)
+            self._cancel_search_spin()
+            self._pick_reapproach_attempts = 0
             self._search_triggered = False
             self.get_logger().info(f'🧭 Target acquired: {target}')
 
@@ -211,7 +229,22 @@ class BrainNode(Node):
             self.get_logger().info('⏳ Waiting for spin to complete...')
 
         elif state == 'PICK':
+            pick_distance = self._compute_pick_distance()
+            if pick_distance is None:
+                self._handle_pick_reapproach(pick_distance)
+                return
+
+            effective_threshold = max(
+                self.pick_distance_threshold,
+                self.stop_distance + self.pick_distance_margin,
+            )
+            if pick_distance > effective_threshold:
+                self._handle_pick_reapproach(
+                    pick_distance, effective_threshold=effective_threshold)
+                return
+
             self.get_logger().info('🤖 Picking object...')
+            self._pick_reapproach_attempts = 0
             self.brain.on_pick_completed()
 
         elif state == 'GO_TO_BOX':
@@ -280,6 +313,54 @@ class BrainNode(Node):
             self._spin_goal_handle.cancel_goal_async()
             self._spin_goal_handle = None
 
+    def _compute_pick_distance(self):
+        """Return robot-to-target distance for pick, or None if unavailable."""
+        if self.brain.target is None:
+            return None
+
+        robot_position = self.tf_transformer.lookup_robot_position(
+            target_frame=self.target_frame,
+            timeout_seconds=self.tf_timeout_sec,
+        )
+        if robot_position is None:
+            return None
+
+        robot_x, robot_y = robot_position
+        target_x, target_y = self.brain.target.x, self.brain.target.y
+        return math.hypot(target_x - robot_x, target_y - robot_y)
+
+    def _handle_pick_reapproach(self, pick_distance, effective_threshold=None):
+        """Retry approach before pick and abort cleanly after max attempts."""
+        self._pick_reapproach_attempts += 1
+
+        if self._pick_reapproach_attempts > self.max_pick_reapproach_attempts:
+            self.get_logger().warn(
+                '⚠️ Pick failed after max re-approach attempts. '
+                'Dropping target and returning to SEARCHING.'
+            )
+            self._pick_reapproach_attempts = 0
+            self.brain.on_pick_failed()
+            self._search_triggered = False
+            return
+
+        if pick_distance is None:
+            self.get_logger().warn(
+                f'⚠️ Pick distance unavailable, re-approaching '
+                f'({self._pick_reapproach_attempts}/'
+                f'{self.max_pick_reapproach_attempts}).'
+            )
+        else:
+            self.get_logger().warn(
+                f'⚠️ Too far from target to pick '
+                f'(dist={pick_distance:.2f}m, '
+                f'threshold={effective_threshold:.2f}m). '
+                f'Re-approaching '
+                f'({self._pick_reapproach_attempts}/'
+                f'{self.max_pick_reapproach_attempts}).'
+            )
+
+        self.brain.on_pick_too_far()
+
     def spin_goal_response_callback(self, future):
         """Handle spin goal response."""
         goal_handle = future.result()
@@ -325,7 +406,19 @@ class BrainNode(Node):
 
     def get_result_callback(self, future):
         """Handle Nav2 goal completion."""
-        future.result().result
+        goal_result = future.result()
+        status = goal_result.status
+
+        if status != GoalStatus.STATUS_SUCCEEDED:
+            self.get_logger().warn(
+                f'⚠️ Navigation ended with status={status}, '
+                'returning to SEARCHING.'
+            )
+            self.brain.on_navigation_rejected()
+            self._search_triggered = False
+            self._pick_reapproach_attempts = 0
+            return
+
         self.get_logger().info('🏁 Navigation finished!')
         self.brain.on_navigation_finished()
 

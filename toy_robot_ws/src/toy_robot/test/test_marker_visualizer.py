@@ -1,6 +1,5 @@
-from visualization_msgs.msg import Marker
-
 from toy_robot.visualization.marker_visualizer import MarkerVisualizer
+from visualization_msgs.msg import Marker
 
 
 class FakeNow:

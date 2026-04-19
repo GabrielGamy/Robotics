@@ -1,5 +1,5 @@
-from rclpy.duration import Duration
 from geometry_msgs.msg import Point
+from rclpy.duration import Duration
 from visualization_msgs.msg import Marker
 
 

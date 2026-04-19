@@ -150,3 +150,24 @@ class TestBrainController:
 
         assert self.brain.state == RobotState.GO_TO_OBJECT
         assert self.brain.target == target2
+
+    def test_can_accept_detection_only_in_search_states(self):
+        """Detection gating helper should match allowed search states."""
+        assert self.brain.can_accept_detection() is True
+
+        self.brain.state = RobotState.GO_TO_OBJECT
+        assert self.brain.can_accept_detection() is False
+
+    def test_on_pick_too_far_reapproaches_target(self):
+        """When pick is too far, controller should go back to object approach."""
+        target = Target(x=0.6, y=-0.2, source='camera')
+        self.brain.on_object_detected(target)
+        self.brain.on_navigation_accepted()
+        self.brain.on_navigation_finished()
+
+        assert self.brain.state == RobotState.PICK
+
+        self.brain.on_pick_too_far()
+
+        assert self.brain.state == RobotState.GO_TO_OBJECT
+        assert self.brain.target == target

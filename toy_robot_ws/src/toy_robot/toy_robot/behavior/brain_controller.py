@@ -21,13 +21,7 @@ class BrainController:
     """Pure logic for the robot's behavior state machine (no ROS dependencies)."""
 
     def __init__(self, box_x=0.0, box_y=0.0, max_search_attempts=8):
-        """Initialize controller.
-
-        Args:
-            box_x: X coordinate of the drop-off box in map frame.
-            box_y: Y coordinate of the drop-off box in map frame.
-            max_search_attempts: maximum scan spins before resetting cycle.
-        """
+        """Initialize controller with box coordinates and scan attempt limit."""
         self.state = RobotState.SEARCHING
         self.target: Target = None
         self.box_x = box_x
@@ -62,13 +56,17 @@ class BrainController:
         else:
             self.state = RobotState.GO_TO_SEARCH_SPIN
 
-    def on_object_detected(self, target: Target):
-        """Handle a new object detection."""
-        if self.state not in (
+    def can_accept_detection(self):
+        """Return whether a new detection can be accepted now."""
+        return self.state in (
             RobotState.SEARCHING,
             RobotState.GO_TO_SEARCH_SPIN,
             RobotState.WAIT_SEARCH_SPIN,
-        ):
+        )
+
+    def on_object_detected(self, target: Target):
+        """Handle a new object detection."""
+        if not self.can_accept_detection():
             return False  # ignore if not searching
 
         self.target = target
@@ -97,6 +95,21 @@ class BrainController:
     def on_pick_completed(self):
         """Handle successful object pickup."""
         self.state = RobotState.GO_TO_BOX
+
+    def on_pick_too_far(self):
+        """Re-approach target if robot is still too far to pick."""
+        if self.state != RobotState.PICK:
+            return
+
+        if self.target is None:
+            self.state = RobotState.SEARCHING
+            return
+
+        self.state = RobotState.GO_TO_OBJECT
+
+    def on_pick_failed(self):
+        """Abort current target after too many failed pick attempts."""
+        self._reset_search_mode()
 
     def on_drop_completed(self):
         """Handle successful object drop."""

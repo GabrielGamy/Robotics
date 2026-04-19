@@ -1,9 +1,10 @@
 import random
 
-import rclpy
 from geometry_msgs.msg import Point
+import rclpy
 from rclpy.executors import ExternalShutdownException
 from rclpy.node import Node
+
 
 class PerceptionNode(Node):
     """ROS2 node for object detection simulation."""
