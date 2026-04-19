@@ -171,3 +171,32 @@ class TestBrainController:
 
         assert self.brain.state == RobotState.GO_TO_OBJECT
         assert self.brain.target == target
+
+
+class TestDropController:
+    """Unit tests for drop-related BrainController events."""
+
+    def setup_method(self):
+        """Create a brain in DROP state."""
+        self.brain = BrainController(box_x=1.0, box_y=2.0)
+        target = Target(x=0.6, y=-0.2, source='camera')
+        self.brain.on_object_detected(target)
+        self.brain.on_navigation_accepted()
+        self.brain.on_navigation_finished()
+        self.brain.on_pick_completed()
+        self.brain.on_navigation_accepted()
+        self.brain.on_navigation_finished()
+        assert self.brain.state == RobotState.DROP
+
+    def test_on_drop_too_far_reapproaches_box(self):
+        """When drop is too far, controller should go back to box approach."""
+        self.brain.on_drop_too_far()
+
+        assert self.brain.state == RobotState.GO_TO_BOX
+
+    def test_on_drop_failed_resets_to_searching(self):
+        """Drop failure should reset to SEARCHING and clear target."""
+        self.brain.on_drop_failed()
+
+        assert self.brain.state == RobotState.SEARCHING
+        assert self.brain.target is None

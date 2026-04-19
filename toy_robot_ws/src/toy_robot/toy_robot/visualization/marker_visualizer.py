@@ -1,5 +1,6 @@
 from geometry_msgs.msg import Point
 from rclpy.duration import Duration
+from rclpy.qos import DurabilityPolicy, QoSProfile, ReliabilityPolicy
 from visualization_msgs.msg import Marker
 
 
@@ -25,7 +26,15 @@ class MarkerVisualizer:
         self._goal_length = float(goal_length)
         self._goal_width = float(goal_width)
         self._direction_line_width = float(direction_line_width)
-        self._pub = node.create_publisher(Marker, topic, 10)
+
+        # Use transient local QoS so RViz can receive markers published
+        # before RViz subscribes to the topic.
+        marker_qos = QoSProfile(depth=1)
+        marker_qos.durability = DurabilityPolicy.TRANSIENT_LOCAL
+        marker_qos.reliability = ReliabilityPolicy.RELIABLE
+
+        # Initialize marker publisher on the configured topic.
+        self._pub = node.create_publisher(Marker, topic, marker_qos)
 
         self.clear_all()
 
@@ -105,6 +114,25 @@ class MarkerVisualizer:
     def remove_direction_marker(self):
         """Remove direction marker from RViz."""
         self._delete_marker('direction', 0)
+
+    def publish_box(self, x, y):
+        """Publish drop-off box marker (orange cube)."""
+        marker = self._base_marker('box', 0, Marker.CUBE)
+        marker.pose.position.x = float(x)
+        marker.pose.position.y = float(y)
+        marker.pose.position.z = 0.05
+        marker.pose.orientation.w = 1.0
+
+        marker.scale.x = 0.25
+        marker.scale.y = 0.25
+        marker.scale.z = 0.10
+
+        marker.color.a = 0.9
+        marker.color.r = 1.0
+        marker.color.g = 0.5
+        marker.color.b = 0.0
+
+        self._pub.publish(marker)
 
     def _delete_marker(self, namespace, marker_id):
         """Publish a DELETE marker for a namespace/id pair."""

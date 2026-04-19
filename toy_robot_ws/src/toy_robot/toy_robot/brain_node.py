@@ -10,6 +10,7 @@ from rclpy.executors import ExternalShutdownException
 from rclpy.node import Node
 from tf2_ros import Buffer, TransformListener
 
+from toy_robot.behavior.approach_guard import ApproachGuard
 from toy_robot.behavior.brain_controller import BrainController
 from toy_robot.config.node_config import BrainNodeConfig, MarkerConfig
 from toy_robot.models.target import Target
@@ -32,16 +33,22 @@ class BrainNode(Node):
         self.cycle_time_sec = brain_node_config.cycle_time_sec
         self.tf_timeout_sec = brain_node_config.tf_timeout_sec
         self.stop_distance = brain_node_config.stop_distance
-        self.pick_distance_threshold = brain_node_config.pick_distance_threshold
-        self.pick_distance_margin = brain_node_config.pick_distance_margin
-        self.max_pick_reapproach_attempts = (
-            brain_node_config.max_pick_reapproach_attempts
-        )
         self.search_spin_yaw = brain_node_config.search_spin_yaw
         self.search_spin_time_allowance_sec = brain_node_config.search_spin_time_allowance_sec
         self.max_search_attempts = brain_node_config.max_search_attempts
         self.show_direction_line = brain_node_config.marker.show_direction_line
-        self._pick_reapproach_attempts = 0
+        self._pick_guard = ApproachGuard(
+            threshold=brain_node_config.pick_distance_threshold,
+            margin=brain_node_config.pick_distance_margin,
+            stop_distance=brain_node_config.stop_distance,
+            max_attempts=brain_node_config.max_pick_reapproach_attempts,
+        )
+        self._drop_guard = ApproachGuard(
+            threshold=brain_node_config.drop_distance_threshold,
+            margin=brain_node_config.drop_distance_margin,
+            stop_distance=brain_node_config.stop_distance,
+            max_attempts=brain_node_config.max_drop_reapproach_attempts,
+        )
 
         # ROS infrastructure
         self.subscription = self.create_subscription(
@@ -69,6 +76,7 @@ class BrainNode(Node):
 
         self.tf_transformer = CoordinateTransformer(
             self.tf_buffer, self.get_logger())
+
         self.marker_visualizer = self._try_create_marker_visualizer(
             brain_node_config.marker)
 
@@ -91,6 +99,9 @@ class BrainNode(Node):
             'pick_distance_threshold': 0.55,
             'pick_distance_margin': 0.15,
             'max_pick_reapproach_attempts': 3,
+            'drop_distance_threshold': 0.4,
+            'drop_distance_margin': 0.15,
+            'max_drop_reapproach_attempts': 3,
             'search_spin_yaw': math.pi / 2.0,
             'search_spin_time_allowance_sec': 10.0,
             'max_search_attempts': 8,
@@ -132,6 +143,10 @@ class BrainNode(Node):
             pick_distance_margin=self.get_parameter('pick_distance_margin').value,
             max_pick_reapproach_attempts=self.get_parameter(
                 'max_pick_reapproach_attempts').value,
+            drop_distance_threshold=self.get_parameter('drop_distance_threshold').value,
+            drop_distance_margin=self.get_parameter('drop_distance_margin').value,
+            max_drop_reapproach_attempts=self.get_parameter(
+                'max_drop_reapproach_attempts').value,
             search_spin_yaw=self.get_parameter('search_spin_yaw').value,
             search_spin_time_allowance_sec=self.get_parameter(
                 'search_spin_time_allowance_sec').value,
@@ -175,6 +190,13 @@ class BrainNode(Node):
         robot_x, robot_y = robot_position
         self.marker_visualizer.publish_direction_line(robot_x, robot_y, x, y)
 
+    def _publish_box_marker(self):
+        """Publish drop-off box marker for debug visualization."""
+        if self.marker_visualizer is None:
+            return
+
+        self.marker_visualizer.publish_box(self.brain.box_x, self.brain.box_y)
+
     def object_callback(self, msg):
         """Handle detected object position from perception."""
         if not self.brain.can_accept_detection():
@@ -198,12 +220,15 @@ class BrainNode(Node):
         if self.brain.on_object_detected(target):
             self._publish_detection_markers(x, y)
             self._cancel_search_spin()
-            self._pick_reapproach_attempts = 0
+            self._pick_guard.reset()
             self._search_triggered = False
             self.get_logger().info(f'🧭 Target acquired: {target}')
 
     def run_state_machine(self):
         """Execute state machine transitions."""
+        # Republish box marker every cycle to ensure RViz receives it
+        self._publish_box_marker()
+
         state = self.brain.state.value
 
         if state == 'SEARCHING':
@@ -229,23 +254,20 @@ class BrainNode(Node):
             self.get_logger().info('⏳ Waiting for spin to complete...')
 
         elif state == 'PICK':
-            pick_distance = self._compute_pick_distance()
-            if pick_distance is None:
-                self._handle_pick_reapproach(pick_distance)
-                return
-
-            effective_threshold = max(
-                self.pick_distance_threshold,
-                self.stop_distance + self.pick_distance_margin,
-            )
-            if pick_distance > effective_threshold:
-                self._handle_pick_reapproach(
-                    pick_distance, effective_threshold=effective_threshold)
+            pick_distance = self._compute_approach_distance(self.brain.target)
+            if pick_distance is None or not self._pick_guard.is_close_enough(pick_distance):
+                self._handle_reapproach(
+                    self._pick_guard,
+                    label='pick',
+                    pick_distance=pick_distance,
+                    on_too_far=self.brain.on_pick_too_far,
+                    on_failed=self._on_pick_failed,
+                )
                 return
 
             self.get_logger().info('🤖 Picking object...')
             self._clear_target_visualization()
-            self._pick_reapproach_attempts = 0
+            self._pick_guard.reset()
             self.brain.on_pick_completed()
 
         elif state == 'GO_TO_BOX':
@@ -258,7 +280,19 @@ class BrainNode(Node):
             self.get_logger().info('⏳ Going to box...')
 
         elif state == 'DROP':
+            drop_distance = self._compute_approach_distance_to_box()
+            if drop_distance is None or not self._drop_guard.is_close_enough(drop_distance):
+                self._handle_reapproach(
+                    self._drop_guard,
+                    label='drop',
+                    pick_distance=drop_distance,
+                    on_too_far=self.brain.on_drop_too_far,
+                    on_failed=self._on_drop_failed,
+                )
+                return
+
             self.get_logger().info('🧺 Dropping object...')
+            self._drop_guard.reset()
             self.brain.on_drop_completed()
 
     def _send_navigation_goal(self, x, y, stop_distance=0.0):
@@ -314,9 +348,9 @@ class BrainNode(Node):
             self._spin_goal_handle.cancel_goal_async()
             self._spin_goal_handle = None
 
-    def _compute_pick_distance(self):
-        """Return robot-to-target distance for pick, or None if unavailable."""
-        if self.brain.target is None:
+    def _compute_approach_distance(self, target):
+        """Return robot-to-target distance, or None if unavailable."""
+        if target is None:
             return None
 
         robot_position = self.tf_transformer.lookup_robot_position(
@@ -327,41 +361,48 @@ class BrainNode(Node):
             return None
 
         robot_x, robot_y = robot_position
-        target_x, target_y = self.brain.target.x, self.brain.target.y
-        return math.hypot(target_x - robot_x, target_y - robot_y)
+        return math.hypot(target.x - robot_x, target.y - robot_y)
 
-    def _handle_pick_reapproach(self, pick_distance, effective_threshold=None):
-        """Retry approach before pick and abort cleanly after max attempts."""
-        self._pick_reapproach_attempts += 1
+    def _compute_approach_distance_to_box(self):
+        """Return robot-to-box distance, or None if unavailable."""
+        box_target = Target(x=self.brain.box_x, y=self.brain.box_y, source='box')
+        return self._compute_approach_distance(box_target)
 
-        if self._pick_reapproach_attempts > self.max_pick_reapproach_attempts:
+    def _handle_reapproach(self, guard, label, pick_distance, on_too_far, on_failed):
+        """Handle re-approach logic shared by pick and drop guards."""
+        if guard.register_attempt():
             self.get_logger().warn(
-                '⚠️ Pick failed after max re-approach attempts. '
-                'Dropping target and returning to SEARCHING.'
+                f'⚠️ {label.capitalize()} failed after max re-approach attempts. '
+                'Returning to SEARCHING.'
             )
-            self._clear_target_visualization()
-            self._pick_reapproach_attempts = 0
-            self.brain.on_pick_failed()
+            guard.reset()
+            on_failed()
             self._search_triggered = False
             return
 
         if pick_distance is None:
             self.get_logger().warn(
-                f'⚠️ Pick distance unavailable, re-approaching '
-                f'({self._pick_reapproach_attempts}/'
-                f'{self.max_pick_reapproach_attempts}).'
+                f'⚠️ {label.capitalize()} distance unavailable, re-approaching '
+                f'({guard.attempts}/{guard.max_attempts}).'
             )
         else:
             self.get_logger().warn(
-                f'⚠️ Too far from target to pick '
+                f'⚠️ Too far to {label} '
                 f'(dist={pick_distance:.2f}m, '
-                f'threshold={effective_threshold:.2f}m). '
-                f'Re-approaching '
-                f'({self._pick_reapproach_attempts}/'
-                f'{self.max_pick_reapproach_attempts}).'
+                f'threshold={guard.effective_threshold:.2f}m). '
+                f'Re-approaching ({guard.attempts}/{guard.max_attempts}).'
             )
 
-        self.brain.on_pick_too_far()
+        on_too_far()
+
+    def _on_pick_failed(self):
+        """Abort pick and reset to searching."""
+        self._clear_target_visualization()
+        self.brain.on_pick_failed()
+
+    def _on_drop_failed(self):
+        """Abort drop and reset to searching."""
+        self.brain.on_drop_failed()
 
     def _clear_target_visualization(self):
         """Clear target-related debug markers from RViz."""
@@ -426,7 +467,8 @@ class BrainNode(Node):
             )
             self.brain.on_navigation_rejected()
             self._search_triggered = False
-            self._pick_reapproach_attempts = 0
+            self._pick_guard.reset()
+            self._drop_guard.reset()
             return
 
         self.get_logger().info('🏁 Navigation finished!')

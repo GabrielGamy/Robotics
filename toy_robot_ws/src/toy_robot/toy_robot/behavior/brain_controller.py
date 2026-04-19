@@ -111,6 +111,17 @@ class BrainController:
         """Abort current target after too many failed pick attempts."""
         self._reset_search_mode()
 
+    def on_drop_too_far(self):
+        """Re-approach box if robot is still too far to drop."""
+        if self.state != RobotState.DROP:
+            return
+
+        self.state = RobotState.GO_TO_BOX
+
+    def on_drop_failed(self):
+        """Abort drop after too many failed attempts."""
+        self._reset_search_mode()
+
     def on_drop_completed(self):
         """Handle successful object drop."""
         self._reset_search_mode()
