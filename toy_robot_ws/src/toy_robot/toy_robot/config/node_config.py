@@ -25,12 +25,6 @@ class BrainNodeConfig:
     box_x: float
     box_y: float
     stop_distance: float
-    pick_distance_threshold: float
-    pick_distance_margin: float
-    max_pick_reapproach_attempts: int
-    drop_distance_threshold: float
-    drop_distance_margin: float
-    max_drop_reapproach_attempts: int
     search_spin_yaw: float
     search_spin_time_allowance_sec: float
     max_search_attempts: int

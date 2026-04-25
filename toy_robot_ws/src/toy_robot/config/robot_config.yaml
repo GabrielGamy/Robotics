@@ -4,16 +4,10 @@ brain_node:
     source_frame: camera_link
     target_frame: map
 
-    # Timers and thresholds
+    # Timers and navigation behavior
     cycle_time_ms: 2000
     tf_timeout_ms: 1000
     stop_distance: 0.3
-    pick_distance_threshold: 0.55
-    pick_distance_margin: 0.15
-    max_pick_reapproach_attempts: 3
-    drop_distance_threshold: 0.4
-    drop_distance_margin: 0.15
-    max_drop_reapproach_attempts: 3
 
     # Search spin behavior
     search_spin_yaw: 1.5708
@@ -43,3 +37,12 @@ perception_node:
     detection_x_max: 2.0
     detection_y_min: -1.0
     detection_y_max: 1.0
+
+manipulation_node:
+  ros__parameters:
+    # Duration of each simulated manipulation phase.
+    simulation_step_duration_sec: 0.5
+
+    # Test flags: force action result_code to TOO_FAR.
+    force_pick_too_far: false
+    force_drop_too_far: false

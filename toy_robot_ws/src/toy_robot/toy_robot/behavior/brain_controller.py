@@ -6,15 +6,28 @@ from toy_robot.models.target import Target
 class RobotState(Enum):
     """State machine states."""
 
+    # Idle search mode: wait for a valid perception target.
     SEARCHING = 'SEARCHING'
+    # Trigger a spin navigation goal to scan the surroundings.
     GO_TO_SEARCH_SPIN = 'GO_TO_SEARCH_SPIN'
+    # Spin goal was sent; wait for completion/rejection.
     WAIT_SEARCH_SPIN = 'WAIT_SEARCH_SPIN'
+    # Send a navigation goal toward the detected object.
     GO_TO_OBJECT = 'GO_TO_OBJECT'
+    # Navigation to object is in progress.
     WAIT_NAVIGATION = 'WAIT_NAVIGATION'
-    PICK = 'PICK'
+    # Send manipulation pick action goal.
+    SEND_PICK_ACTION = 'SEND_PICK_ACTION'
+    # Pick goal accepted; wait for action result.
+    WAIT_PICK_RESULT = 'WAIT_PICK_RESULT'
+    # Send a navigation goal toward the drop box.
     GO_TO_BOX = 'GO_TO_BOX'
+    # Navigation to box is in progress.
     WAIT_NAVIGATION_TO_BOX = 'WAIT_NAVIGATION_TO_BOX'
-    DROP = 'DROP'
+    # Send manipulation drop action goal.
+    SEND_DROP_ACTION = 'SEND_DROP_ACTION'
+    # Drop goal accepted; wait for action result.
+    WAIT_DROP_RESULT = 'WAIT_DROP_RESULT'
 
 
 class BrainController:
@@ -88,43 +101,63 @@ class BrainController:
     def on_navigation_finished(self):
         """Handle Nav2 finishing a goal."""
         if self.state == RobotState.WAIT_NAVIGATION:
-            self.state = RobotState.PICK
+            self.state = RobotState.SEND_PICK_ACTION
         elif self.state == RobotState.WAIT_NAVIGATION_TO_BOX:
-            self.state = RobotState.DROP
+            self.state = RobotState.SEND_DROP_ACTION
+
+    def on_pick_action_accepted(self):
+        """Handle pick action goal acceptance."""
+        if self.state == RobotState.SEND_PICK_ACTION:
+            self.state = RobotState.WAIT_PICK_RESULT
+
+    def on_pick_action_rejected(self):
+        """Handle pick action goal rejection."""
+        self._reset_search_mode()
 
     def on_pick_completed(self):
         """Handle successful object pickup."""
-        self.state = RobotState.GO_TO_BOX
-
-    def on_pick_too_far(self):
-        """Re-approach target if robot is still too far to pick."""
-        if self.state != RobotState.PICK:
-            return
-
-        if self.target is None:
-            self.state = RobotState.SEARCHING
-            return
-
-        self.state = RobotState.GO_TO_OBJECT
+        if self.state in (RobotState.SEND_PICK_ACTION, RobotState.WAIT_PICK_RESULT):
+            self.state = RobotState.GO_TO_BOX
 
     def on_pick_failed(self):
         """Abort current target after too many failed pick attempts."""
         self._reset_search_mode()
 
-    def on_drop_too_far(self):
-        """Re-approach box if robot is still too far to drop."""
-        if self.state != RobotState.DROP:
+    def on_pick_too_far(self):
+        """Re-approach target when manipulation reports target too far."""
+        if self.state not in (RobotState.SEND_PICK_ACTION, RobotState.WAIT_PICK_RESULT):
             return
 
-        self.state = RobotState.GO_TO_BOX
+        if self.target is None:
+            self._reset_search_mode()
+            return
+
+        self.state = RobotState.GO_TO_OBJECT
+
+    def on_drop_action_accepted(self):
+        """Handle drop action goal acceptance."""
+        if self.state == RobotState.SEND_DROP_ACTION:
+            self.state = RobotState.WAIT_DROP_RESULT
+
+    def on_drop_action_rejected(self):
+        """Handle drop action goal rejection."""
+        self._reset_search_mode()
 
     def on_drop_failed(self):
         """Abort drop after too many failed attempts."""
         self._reset_search_mode()
 
+    def on_drop_too_far(self):
+        """Re-approach box when manipulation reports drop zone too far."""
+        if self.state not in (RobotState.SEND_DROP_ACTION, RobotState.WAIT_DROP_RESULT):
+            return
+
+        self.state = RobotState.GO_TO_BOX
+
     def on_drop_completed(self):
         """Handle successful object drop."""
-        self._reset_search_mode()
+        if self.state in (RobotState.SEND_DROP_ACTION, RobotState.WAIT_DROP_RESULT):
+            self._reset_search_mode()
 
     def _reset_search_mode(self):
         """Reset controller to a clean searching state."""

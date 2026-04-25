@@ -58,13 +58,16 @@ class TestBrainController:
         assert self.brain.target is None
 
     def test_pick_transitions_to_go_to_box(self):
-        """PICK state should transition to GO_TO_BOX."""
+        """Pick action success should transition to GO_TO_BOX."""
         target = Target(x=0.5, y=0.3, source='camera')
         self.brain.on_object_detected(target)
         self.brain.on_navigation_accepted()
         self.brain.on_navigation_finished()
 
-        assert self.brain.state == RobotState.PICK
+        assert self.brain.state == RobotState.SEND_PICK_ACTION
+
+        self.brain.on_pick_action_accepted()
+        assert self.brain.state == RobotState.WAIT_PICK_RESULT
 
         self.brain.on_pick_completed()
 
@@ -84,9 +87,13 @@ class TestBrainController:
         self.brain.on_navigation_accepted()
         assert self.brain.state == RobotState.WAIT_NAVIGATION
 
-        # Navigation succeeds, transition to pick
+        # Navigation succeeds, transition to pick action send
         self.brain.on_navigation_finished()
-        assert self.brain.state == RobotState.PICK
+        assert self.brain.state == RobotState.SEND_PICK_ACTION
+
+        # Pick action accepted, wait for result
+        self.brain.on_pick_action_accepted()
+        assert self.brain.state == RobotState.WAIT_PICK_RESULT
 
         # Pick completed, go to box
         self.brain.on_pick_completed()
@@ -96,9 +103,13 @@ class TestBrainController:
         self.brain.on_navigation_accepted()
         assert self.brain.state == RobotState.WAIT_NAVIGATION_TO_BOX
 
-        # Navigation to box succeeds, drop
+        # Navigation to box succeeds, transition to drop action send
         self.brain.on_navigation_finished()
-        assert self.brain.state == RobotState.DROP
+        assert self.brain.state == RobotState.SEND_DROP_ACTION
+
+        # Drop action accepted, wait for result
+        self.brain.on_drop_action_accepted()
+        assert self.brain.state == RobotState.WAIT_DROP_RESULT
 
         # Drop completed, back to searching
         self.brain.on_drop_completed()
@@ -136,9 +147,11 @@ class TestBrainController:
         self.brain.on_object_detected(target1)
         self.brain.on_navigation_accepted()
         self.brain.on_navigation_finished()
+        self.brain.on_pick_action_accepted()
         self.brain.on_pick_completed()
         self.brain.on_navigation_accepted()
         self.brain.on_navigation_finished()
+        self.brain.on_drop_action_accepted()
         self.brain.on_drop_completed()
 
         # Should be back to searching
@@ -164,8 +177,9 @@ class TestBrainController:
         self.brain.on_object_detected(target)
         self.brain.on_navigation_accepted()
         self.brain.on_navigation_finished()
+        self.brain.on_pick_action_accepted()
 
-        assert self.brain.state == RobotState.PICK
+        assert self.brain.state == RobotState.WAIT_PICK_RESULT
 
         self.brain.on_pick_too_far()
 
@@ -177,22 +191,46 @@ class TestDropController:
     """Unit tests for drop-related BrainController events."""
 
     def setup_method(self):
-        """Create a brain in DROP state."""
+        """Create a brain in WAIT_DROP_RESULT state."""
         self.brain = BrainController(box_x=1.0, box_y=2.0)
         target = Target(x=0.6, y=-0.2, source='camera')
         self.brain.on_object_detected(target)
         self.brain.on_navigation_accepted()
         self.brain.on_navigation_finished()
+        self.brain.on_pick_action_accepted()
         self.brain.on_pick_completed()
         self.brain.on_navigation_accepted()
         self.brain.on_navigation_finished()
-        assert self.brain.state == RobotState.DROP
+        self.brain.on_drop_action_accepted()
+        assert self.brain.state == RobotState.WAIT_DROP_RESULT
 
     def test_on_drop_too_far_reapproaches_box(self):
         """When drop is too far, controller should go back to box approach."""
         self.brain.on_drop_too_far()
 
         assert self.brain.state == RobotState.GO_TO_BOX
+
+    def test_rejected_pick_action_resets_to_searching(self):
+        """Pick action rejection should reset to SEARCHING."""
+        brain = BrainController(box_x=1.0, box_y=2.0)
+        target = Target(x=0.5, y=0.3, source='camera')
+        brain.on_object_detected(target)
+        brain.on_navigation_accepted()
+        brain.on_navigation_finished()
+
+        assert brain.state == RobotState.SEND_PICK_ACTION
+
+        brain.on_pick_action_rejected()
+
+        assert brain.state == RobotState.SEARCHING
+        assert brain.target is None
+
+    def test_rejected_drop_action_resets_to_searching(self):
+        """Drop action rejection should reset to SEARCHING."""
+        self.brain.on_drop_action_rejected()
+
+        assert self.brain.state == RobotState.SEARCHING
+        assert self.brain.target is None
 
     def test_on_drop_failed_resets_to_searching(self):
         """Drop failure should reset to SEARCHING and clear target."""

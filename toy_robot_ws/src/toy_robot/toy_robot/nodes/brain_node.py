@@ -1,7 +1,7 @@
 import math
 
 from action_msgs.msg import GoalStatus
-from geometry_msgs.msg import Point, PoseStamped
+from geometry_msgs.msg import Point, PointStamped, PoseStamped
 from nav2_msgs.action import NavigateToPose, Spin
 import rclpy
 from rclpy.action import ActionClient
@@ -9,9 +9,9 @@ from rclpy.duration import Duration
 from rclpy.executors import ExternalShutdownException
 from rclpy.node import Node
 from tf2_ros import Buffer, TransformListener
+from toy_robot_interfaces.action import DropObject, PickObject
 
-from toy_robot.behavior.approach_guard import ApproachGuard
-from toy_robot.behavior.brain_controller import BrainController
+from toy_robot.behavior.brain_controller import BrainController, RobotState
 from toy_robot.config.node_config import BrainNodeConfig, MarkerConfig
 from toy_robot.models.target import Target
 from toy_robot.tf.transformer import CoordinateTransformer
@@ -37,18 +37,8 @@ class BrainNode(Node):
         self.search_spin_time_allowance_sec = brain_node_config.search_spin_time_allowance_sec
         self.max_search_attempts = brain_node_config.max_search_attempts
         self.show_direction_line = brain_node_config.marker.show_direction_line
-        self._pick_guard = ApproachGuard(
-            threshold=brain_node_config.pick_distance_threshold,
-            margin=brain_node_config.pick_distance_margin,
-            stop_distance=brain_node_config.stop_distance,
-            max_attempts=brain_node_config.max_pick_reapproach_attempts,
-        )
-        self._drop_guard = ApproachGuard(
-            threshold=brain_node_config.drop_distance_threshold,
-            margin=brain_node_config.drop_distance_margin,
-            stop_distance=brain_node_config.stop_distance,
-            max_attempts=brain_node_config.max_drop_reapproach_attempts,
-        )
+        self.pick_action_timeout_sec = 8.0
+        self.drop_action_timeout_sec = 8.0
 
         # ROS infrastructure
         self.subscription = self.create_subscription(
@@ -60,8 +50,20 @@ class BrainNode(Node):
         self.timer = self.create_timer(self.cycle_time_sec, self.run_state_machine)
         self._action_client = ActionClient(self, NavigateToPose, 'navigate_to_pose')
         self._spin_client = ActionClient(self, Spin, 'spin')
+        self._pick_client = ActionClient(self, PickObject, 'pick_object')
+        self._drop_client = ActionClient(self, DropObject, 'drop_object')
         self._spin_goal_handle = None
         self._search_triggered = False
+        self._pick_goal_handle = None
+        self._pick_goal_pending = False
+        self._pick_active_seq = None
+        self._pick_seq_counter = 0
+        self._pick_deadline_ns = None
+        self._drop_goal_handle = None
+        self._drop_goal_pending = False
+        self._drop_active_seq = None
+        self._drop_seq_counter = 0
+        self._drop_deadline_ns = None
 
         # TF2
         self.tf_buffer = Buffer()
@@ -96,12 +98,6 @@ class BrainNode(Node):
             'box_x': 0.0,
             'box_y': 0.0,
             'stop_distance': 0.3,
-            'pick_distance_threshold': 0.55,
-            'pick_distance_margin': 0.15,
-            'max_pick_reapproach_attempts': 3,
-            'drop_distance_threshold': 0.4,
-            'drop_distance_margin': 0.15,
-            'max_drop_reapproach_attempts': 3,
             'search_spin_yaw': math.pi / 2.0,
             'search_spin_time_allowance_sec': 10.0,
             'max_search_attempts': 8,
@@ -139,14 +135,6 @@ class BrainNode(Node):
             box_x=self.get_parameter('box_x').value,
             box_y=self.get_parameter('box_y').value,
             stop_distance=self.get_parameter('stop_distance').value,
-            pick_distance_threshold=self.get_parameter('pick_distance_threshold').value,
-            pick_distance_margin=self.get_parameter('pick_distance_margin').value,
-            max_pick_reapproach_attempts=self.get_parameter(
-                'max_pick_reapproach_attempts').value,
-            drop_distance_threshold=self.get_parameter('drop_distance_threshold').value,
-            drop_distance_margin=self.get_parameter('drop_distance_margin').value,
-            max_drop_reapproach_attempts=self.get_parameter(
-                'max_drop_reapproach_attempts').value,
             search_spin_yaw=self.get_parameter('search_spin_yaw').value,
             search_spin_time_allowance_sec=self.get_parameter(
                 'search_spin_time_allowance_sec').value,
@@ -220,7 +208,6 @@ class BrainNode(Node):
         if self.brain.on_object_detected(target):
             self._publish_detection_markers(x, y)
             self._cancel_search_spin()
-            self._pick_guard.reset()
             self._search_triggered = False
             self.get_logger().info(f'🧭 Target acquired: {target}')
 
@@ -253,22 +240,12 @@ class BrainNode(Node):
         elif state == 'WAIT_SEARCH_SPIN':
             self.get_logger().info('⏳ Waiting for spin to complete...')
 
-        elif state == 'PICK':
-            pick_distance = self._compute_approach_distance(self.brain.target)
-            if pick_distance is None or not self._pick_guard.is_close_enough(pick_distance):
-                self._handle_reapproach(
-                    self._pick_guard,
-                    label='pick',
-                    pick_distance=pick_distance,
-                    on_too_far=self.brain.on_pick_too_far,
-                    on_failed=self._on_pick_failed,
-                )
-                return
+        elif state == 'SEND_PICK_ACTION':
+            self._send_pick_goal()
 
-            self.get_logger().info('🤖 Picking object...')
-            self._clear_target_visualization()
-            self._pick_guard.reset()
-            self.brain.on_pick_completed()
+        elif state == 'WAIT_PICK_RESULT':
+            self.get_logger().info('⏳ Waiting for pick result...')
+            self._check_pick_timeout()
 
         elif state == 'GO_TO_BOX':
             self.get_logger().info(
@@ -279,21 +256,12 @@ class BrainNode(Node):
         elif state == 'WAIT_NAVIGATION_TO_BOX':
             self.get_logger().info('⏳ Going to box...')
 
-        elif state == 'DROP':
-            drop_distance = self._compute_approach_distance_to_box()
-            if drop_distance is None or not self._drop_guard.is_close_enough(drop_distance):
-                self._handle_reapproach(
-                    self._drop_guard,
-                    label='drop',
-                    pick_distance=drop_distance,
-                    on_too_far=self.brain.on_drop_too_far,
-                    on_failed=self._on_drop_failed,
-                )
-                return
+        elif state == 'SEND_DROP_ACTION':
+            self._send_drop_goal()
 
-            self.get_logger().info('🧺 Dropping object...')
-            self._drop_guard.reset()
-            self.brain.on_drop_completed()
+        elif state == 'WAIT_DROP_RESULT':
+            self.get_logger().info('⏳ Waiting for drop result...')
+            self._check_drop_timeout()
 
     def _send_navigation_goal(self, x, y, stop_distance=0.0):
         """Send a navigation goal to Nav2."""
@@ -348,61 +316,121 @@ class BrainNode(Node):
             self._spin_goal_handle.cancel_goal_async()
             self._spin_goal_handle = None
 
-    def _compute_approach_distance(self, target):
-        """Return robot-to-target distance, or None if unavailable."""
+    def _send_pick_goal(self):
+        """Send a pick action goal asynchronously."""
+        if self._pick_goal_pending or self._pick_active_seq is not None:
+            return
+
+        target = self.brain.target
         if target is None:
-            return None
-
-        robot_position = self.tf_transformer.lookup_robot_position(
-            target_frame=self.target_frame,
-            timeout_seconds=self.tf_timeout_sec,
-        )
-        if robot_position is None:
-            return None
-
-        robot_x, robot_y = robot_position
-        return math.hypot(target.x - robot_x, target.y - robot_y)
-
-    def _compute_approach_distance_to_box(self):
-        """Return robot-to-box distance, or None if unavailable."""
-        box_target = Target(x=self.brain.box_x, y=self.brain.box_y, source='box')
-        return self._compute_approach_distance(box_target)
-
-    def _handle_reapproach(self, guard, label, pick_distance, on_too_far, on_failed):
-        """Handle re-approach logic shared by pick and drop guards."""
-        if guard.register_attempt():
-            self.get_logger().warn(
-                f'⚠️ {label.capitalize()} failed after max re-approach attempts. '
-                'Returning to SEARCHING.'
-            )
-            guard.reset()
-            on_failed()
+            self.get_logger().warn('⚠️ No target available for pick action.')
+            self.brain.on_pick_failed()
             self._search_triggered = False
             return
 
-        if pick_distance is None:
-            self.get_logger().warn(
-                f'⚠️ {label.capitalize()} distance unavailable, re-approaching '
-                f'({guard.attempts}/{guard.max_attempts}).'
-            )
-        else:
-            self.get_logger().warn(
-                f'⚠️ Too far to {label} '
-                f'(dist={pick_distance:.2f}m, '
-                f'threshold={guard.effective_threshold:.2f}m). '
-                f'Re-approaching ({guard.attempts}/{guard.max_attempts}).'
-            )
+        if not self._pick_client.wait_for_server(timeout_sec=0.1):
+            self.get_logger().warn('⏳ Waiting for /pick_object action server...')
+            return
 
-        on_too_far()
+        goal_msg = PickObject.Goal()
+        goal_msg.target = PointStamped()
+        goal_msg.target.header.frame_id = self.target_frame
+        goal_msg.target.header.stamp = self.get_clock().now().to_msg()
+        goal_msg.target.point.x = target.x
+        goal_msg.target.point.y = target.y
+        goal_msg.target.point.z = 0.0
 
-    def _on_pick_failed(self):
-        """Abort pick and reset to searching."""
+        self._pick_seq_counter += 1
+        seq = self._pick_seq_counter
+        self._pick_active_seq = seq
+        self._pick_goal_pending = True
+        self._pick_deadline_ns = (
+            self.get_clock().now().nanoseconds
+            + int(self.pick_action_timeout_sec * 1e9)
+        )
+
+        self.get_logger().info('🤖 Sending pick action goal...')
+        send_goal_future = self._pick_client.send_goal_async(
+            goal_msg,
+            feedback_callback=lambda feedback_msg, s=seq: self.pick_feedback_callback(
+                feedback_msg, s),
+        )
+        send_goal_future.add_done_callback(
+            lambda future, s=seq: self.pick_goal_response_callback(future, s))
+
+    def _send_drop_goal(self):
+        """Send a drop action goal asynchronously."""
+        if self._drop_goal_pending or self._drop_active_seq is not None:
+            return
+
+        if not self._drop_client.wait_for_server(timeout_sec=0.1):
+            self.get_logger().warn('⏳ Waiting for /drop_object action server...')
+            return
+
+        goal_msg = DropObject.Goal()
+        goal_msg.drop_zone = PointStamped()
+        goal_msg.drop_zone.header.frame_id = self.target_frame
+        goal_msg.drop_zone.header.stamp = self.get_clock().now().to_msg()
+        goal_msg.drop_zone.point.x = self.brain.box_x
+        goal_msg.drop_zone.point.y = self.brain.box_y
+        goal_msg.drop_zone.point.z = 0.0
+
+        self._drop_seq_counter += 1
+        seq = self._drop_seq_counter
+        self._drop_active_seq = seq
+        self._drop_goal_pending = True
+        self._drop_deadline_ns = (
+            self.get_clock().now().nanoseconds
+            + int(self.drop_action_timeout_sec * 1e9)
+        )
+
+        self.get_logger().info('🧺 Sending drop action goal...')
+        send_goal_future = self._drop_client.send_goal_async(
+            goal_msg,
+            feedback_callback=lambda feedback_msg, s=seq: self.drop_feedback_callback(
+                feedback_msg, s),
+        )
+        send_goal_future.add_done_callback(
+            lambda future, s=seq: self.drop_goal_response_callback(future, s))
+
+    def _check_pick_timeout(self):
+        """Cancel and fail pick if it exceeds timeout."""
+        if self._pick_active_seq is None or self._pick_deadline_ns is None:
+            return
+
+        if self.get_clock().now().nanoseconds <= self._pick_deadline_ns:
+            return
+
+        self.get_logger().warn('⚠️ Pick action timed out. Canceling goal.')
+        if self._pick_goal_handle is not None:
+            self._pick_goal_handle.cancel_goal_async()
+
+        self._pick_active_seq = None
+        self._pick_goal_pending = False
+        self._pick_goal_handle = None
+        self._pick_deadline_ns = None
         self._clear_target_visualization()
         self.brain.on_pick_failed()
+        self._search_triggered = False
 
-    def _on_drop_failed(self):
-        """Abort drop and reset to searching."""
+    def _check_drop_timeout(self):
+        """Cancel and fail drop if it exceeds timeout."""
+        if self._drop_active_seq is None or self._drop_deadline_ns is None:
+            return
+
+        if self.get_clock().now().nanoseconds <= self._drop_deadline_ns:
+            return
+
+        self.get_logger().warn('⚠️ Drop action timed out. Canceling goal.')
+        if self._drop_goal_handle is not None:
+            self._drop_goal_handle.cancel_goal_async()
+
+        self._drop_active_seq = None
+        self._drop_goal_pending = False
+        self._drop_goal_handle = None
+        self._drop_deadline_ns = None
         self.brain.on_drop_failed()
+        self._search_triggered = False
 
     def _clear_target_visualization(self):
         """Clear target-related debug markers from RViz."""
@@ -440,6 +468,130 @@ class BrainNode(Node):
         self.brain.on_spin_finished()
         self._search_triggered = False
 
+    def pick_feedback_callback(self, feedback_msg, seq):
+        """Handle pick action feedback messages."""
+        if seq != self._pick_active_seq:
+            return
+        phase = feedback_msg.feedback.phase
+        self.get_logger().info(f'🔧 Pick feedback: {phase}')
+
+    def drop_feedback_callback(self, feedback_msg, seq):
+        """Handle drop action feedback messages."""
+        if seq != self._drop_active_seq:
+            return
+        phase = feedback_msg.feedback.phase
+        self.get_logger().info(f'🔧 Drop feedback: {phase}')
+
+    def pick_goal_response_callback(self, future, seq):
+        """Handle pick action goal response."""
+        if seq != self._pick_active_seq:
+            return
+
+        self._pick_goal_pending = False
+        goal_handle = future.result()
+
+        if not goal_handle.accepted:
+            self.get_logger().warn('❌ Pick action goal rejected')
+            self._pick_active_seq = None
+            self._pick_deadline_ns = None
+            self._clear_target_visualization()
+            self.brain.on_pick_action_rejected()
+            self._search_triggered = False
+            return
+
+        self.get_logger().info('✅ Pick action goal accepted')
+        self._pick_goal_handle = goal_handle
+        self.brain.on_pick_action_accepted()
+        get_result_future = goal_handle.get_result_async()
+        get_result_future.add_done_callback(
+            lambda result_future, s=seq: self.pick_result_callback(result_future, s))
+
+    def drop_goal_response_callback(self, future, seq):
+        """Handle drop action goal response."""
+        if seq != self._drop_active_seq:
+            return
+
+        self._drop_goal_pending = False
+        goal_handle = future.result()
+
+        if not goal_handle.accepted:
+            self.get_logger().warn('❌ Drop action goal rejected')
+            self._drop_active_seq = None
+            self._drop_deadline_ns = None
+            self.brain.on_drop_action_rejected()
+            self._search_triggered = False
+            return
+
+        self.get_logger().info('✅ Drop action goal accepted')
+        self._drop_goal_handle = goal_handle
+        self.brain.on_drop_action_accepted()
+        get_result_future = goal_handle.get_result_async()
+        get_result_future.add_done_callback(
+            lambda result_future, s=seq: self.drop_result_callback(result_future, s))
+
+    def pick_result_callback(self, future, seq):
+        """Handle pick action completion."""
+        if seq != self._pick_active_seq:
+            return
+
+        self._pick_goal_handle = None
+        self._pick_active_seq = None
+        self._pick_deadline_ns = None
+
+        goal_result = future.result()
+        status = goal_result.status
+        result = goal_result.result
+
+        if result.result_code == PickObject.Result.RESULT_TOO_FAR:
+            self.get_logger().warn('⚠️ Pick action reports target too far, re-approaching.')
+            self.brain.on_pick_too_far()
+            return
+
+        if status == GoalStatus.STATUS_SUCCEEDED and result.success:
+            self.get_logger().info('✅ Pick action succeeded')
+            self._clear_target_visualization()
+            self.brain.on_pick_completed()
+            return
+
+        self.get_logger().warn(
+            f'⚠️ Pick action failed: status={status}, code={result.result_code}, '
+            f'msg={result.message}'
+        )
+        self._clear_target_visualization()
+        self.brain.on_pick_failed()
+        self._search_triggered = False
+
+    def drop_result_callback(self, future, seq):
+        """Handle drop action completion."""
+        if seq != self._drop_active_seq:
+            return
+
+        self._drop_goal_handle = None
+        self._drop_active_seq = None
+        self._drop_deadline_ns = None
+
+        goal_result = future.result()
+        status = goal_result.status
+        result = goal_result.result
+
+        if result.result_code == DropObject.Result.RESULT_TOO_FAR:
+            self.get_logger().warn('⚠️ Drop action reports zone too far, re-approaching box.')
+            self.brain.on_drop_too_far()
+            return
+
+        if status == GoalStatus.STATUS_SUCCEEDED and result.success:
+            self.get_logger().info('✅ Drop action succeeded')
+            self.brain.on_drop_completed()
+            self._search_triggered = False
+            return
+
+        self.get_logger().warn(
+            f'⚠️ Drop action failed: status={status}, code={result.result_code}, '
+            f'msg={result.message}'
+        )
+        self.brain.on_drop_failed()
+        self._search_triggered = False
+
     def goal_response_callback(self, future):
         """Handle Nav2 goal response."""
         goal_handle = future.result()
@@ -467,8 +619,6 @@ class BrainNode(Node):
             )
             self.brain.on_navigation_rejected()
             self._search_triggered = False
-            self._pick_guard.reset()
-            self._drop_guard.reset()
             return
 
         self.get_logger().info('🏁 Navigation finished!')

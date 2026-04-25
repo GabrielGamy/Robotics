@@ -14,4 +14,9 @@
     <param from="$(var config_file)"/>
   </node>
 
+  <!-- Manipulation action server node -->
+  <node pkg="toy_robot" exec="manipulation_node" name="manipulation_node" output="screen">
+    <param from="$(var config_file)"/>
+  </node>
+
 </launch>

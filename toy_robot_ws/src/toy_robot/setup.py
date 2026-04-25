@@ -26,8 +26,9 @@ setup(
     },
     entry_points={
         'console_scripts': [
-            'brain_node = toy_robot.brain_node:main',
-            'perception_node = toy_robot.perception_node:main',
+            'brain_node = toy_robot.nodes.brain_node:main',
+            'manipulation_node = toy_robot.nodes.manipulation_node:main',
+            'perception_node = toy_robot.nodes.perception_node:main',
         ],
     },
 )
