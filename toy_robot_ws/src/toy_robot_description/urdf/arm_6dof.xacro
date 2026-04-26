@@ -15,8 +15,8 @@
                 <cylinder length="${shoulder_length}" radius="${shoulder_radius}" />
             </geometry>
             <origin xyz="0 0 ${shoulder_length/2}" rpy="0 0 0" />
-            <material name="blue">
-                <color rgba="0 0 0.5 1" />
+            <material name="arm_joint">
+                <color rgba="${color_joint}" />
             </material>
         </visual>
         <collision>
@@ -46,8 +46,8 @@
                 <cylinder length="${arm_length}" radius="${arm_radius}" />
             </geometry>
             <origin xyz="0 0 ${arm_length/2}" rpy="0 0 0" />
-            <material name="gray">
-                <color rgba="0.5 0.5 0.5 1" />
+            <material name="arm_link1">
+                <color rgba="${color_link}" />
             </material>
         </visual>
         <collision>
@@ -77,8 +77,8 @@
                 <cylinder length="${elbow_length}" radius="${elbow_radius}" />
             </geometry>
             <origin xyz="0 0 ${elbow_length/2}" rpy="0 0 0" />
-            <material name="blue">
-                <color rgba="0 0 0.5 1" />
+            <material name="arm_joint2">
+                <color rgba="${color_joint}" />
             </material>
         </visual>
         <collision>
@@ -108,8 +108,8 @@
                 <cylinder length="${forearm_length}" radius="${forearm_radius}" />
             </geometry>
             <origin xyz="0 0 ${forearm_length/2}" rpy="0 0 0" />
-            <material name="gray">
-                <color rgba="0.5 0.5 0.5 1" />
+            <material name="arm_link2">
+                <color rgba="${color_link}" />
             </material>
         </visual>
         <collision>
@@ -139,8 +139,8 @@
                 <box size="0.04 0.04 0.03" />
             </geometry>
             <origin xyz="0 0 ${wrist_height/2}" rpy="0 0 0" />
-            <material name="blue">
-                <color rgba="0 0 0.5 1" />
+            <material name="arm_joint3">
+                <color rgba="${color_joint}" />
             </material>
         </visual>
         <collision>
@@ -169,8 +169,8 @@
                 <box size="0.05 0.05 0.02" />
             </geometry>
             <origin xyz="0 0 ${hand_height/2}" rpy="0 0 0" />
-            <material name="gray">
-                <color rgba="0.5 0.5 0.5 1" />
+            <material name="arm_link3">
+                <color rgba="${color_link}" />
             </material>
         </visual>
         <collision>

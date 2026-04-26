@@ -51,4 +51,23 @@
     <xacro:property name="finger_y_offset" value="0.02" />
     <xacro:property name="finger_open_max" value="0.025" />
 
+    <!-- Wheels -->
+    <xacro:property name="wheel_radius" value="0.05" />
+    <xacro:property name="wheel_width" value="0.03" />
+    <xacro:property name="wheel_mass" value="0.1" />
+    <xacro:property name="caster_radius" value="0.02" />
+    <xacro:property name="caster_mass" value="0.05" />
+    <!-- wheel axle Y: just outside the base cylinder -->
+    <xacro:property name="wheel_y" value="${base_radius + wheel_width/2}" />
+
+    <!-- Colors (RGBA) -->
+    <!-- joints: dark steel -->
+    <xacro:property name="color_joint" value="0.45 0.45 0.48 1.0" />
+    <!-- links: light gray -->
+    <xacro:property name="color_link" value="0.65 0.65 0.65 1.0" />
+    <!-- camera: near white -->
+    <xacro:property name="color_camera" value="0.88 0.88 0.88 1.0" />
+    <!-- rubber dark -->
+    <xacro:property name="color_wheel" value="0.15 0.15 0.15 1.0" />
+
 </robot>
