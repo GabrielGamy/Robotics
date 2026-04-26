@@ -1,0 +1,54 @@
+<?xml version="1.0"?>
+<robot name="toy_robot" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+    <!-- Base -->
+    <xacro:property name="base_radius" value="0.2" />
+    <xacro:property name="base_height" value="0.1" />
+    <xacro:property name="base_mass" value="2.0" />
+
+    <!-- Camera -->
+    <xacro:property name="camera_size_x" value="0.04" />
+    <xacro:property name="camera_size_y" value="0.08" />
+    <xacro:property name="camera_size_z" value="0.03" />
+    <xacro:property name="camera_mass" value="0.1" />
+    <xacro:property name="camera_mount_x" value="${base_radius}" />
+    <xacro:property name="camera_mount_z" value="${base_height/2}" />
+
+    <!-- Arm -->
+    <xacro:property name="shoulder_length" value="0.06" />
+    <xacro:property name="arm_length" value="0.14" />
+    <xacro:property name="elbow_length" value="0.04" />
+    <xacro:property name="forearm_length" value="0.12" />
+    <xacro:property name="wrist_height" value="0.03" />
+    <xacro:property name="hand_height" value="0.02" />
+
+    <xacro:property name="shoulder_radius" value="0.020" />
+    <xacro:property name="arm_radius" value="0.015" />
+    <xacro:property name="elbow_radius" value="0.022" />
+    <xacro:property name="forearm_radius" value="0.013" />
+
+    <xacro:property name="shoulder_mass" value="0.12" />
+    <xacro:property name="arm_mass" value="0.18" />
+    <xacro:property name="elbow_mass" value="0.08" />
+    <xacro:property name="forearm_mass" value="0.12" />
+    <xacro:property name="wrist_mass" value="0.06" />
+    <xacro:property name="hand_mass" value="0.05" />
+
+    <xacro:property name="arm_mount_x" value="${0.4 * base_radius}" />
+    <xacro:property name="arm_mount_z" value="${base_height}" />
+
+    <!-- Gripper -->
+    <xacro:property name="palm_x" value="0.05" />
+    <xacro:property name="palm_y" value="0.04" />
+    <xacro:property name="palm_z" value="0.02" />
+    <xacro:property name="palm_mass" value="0.04" />
+
+    <xacro:property name="finger_x" value="0.015" />
+    <xacro:property name="finger_y" value="0.008" />
+    <xacro:property name="finger_z" value="0.045" />
+    <xacro:property name="finger_mass" value="0.015" />
+
+    <xacro:property name="finger_y_offset" value="0.02" />
+    <xacro:property name="finger_open_max" value="0.025" />
+
+</robot>

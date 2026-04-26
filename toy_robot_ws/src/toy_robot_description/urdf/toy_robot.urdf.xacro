@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<robot name="toy_robot" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+    <xacro:include filename="$(find toy_robot_description)/urdf/dimensions.xacro" />
+    <xacro:include filename="$(find toy_robot_description)/urdf/base_mobile.xacro" />
+    <xacro:include filename="$(find toy_robot_description)/urdf/camera.xacro" />
+    <xacro:include filename="$(find toy_robot_description)/urdf/arm_6dof.xacro" />
+    <xacro:include filename="$(find toy_robot_description)/urdf/gripper.xacro" />
+
+</robot>

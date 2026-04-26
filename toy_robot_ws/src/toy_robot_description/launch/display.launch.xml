@@ -1,0 +1,13 @@
+<launch>
+  <arg name="model" default="$(find-pkg-share toy_robot_description)/urdf/toy_robot.urdf.xacro"/>
+  <arg name="use_gui" default="true"/>
+
+  <node pkg="robot_state_publisher" exec="robot_state_publisher" output="screen">
+    <param name="robot_description" value="$(command 'xacro $(var model)')"/>
+  </node>
+
+  <node pkg="joint_state_publisher_gui" exec="joint_state_publisher_gui" output="screen" if="$(var use_gui)"/>
+  <node pkg="joint_state_publisher" exec="joint_state_publisher" output="screen" unless="$(var use_gui)"/>
+
+  <node pkg="rviz2" exec="rviz2" output="screen"/>
+</launch>
