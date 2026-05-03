@@ -6,6 +6,7 @@ This folder contains the modular robot description for toy_robot_description.
 
 - dimensions.xacro: single source of truth for shared dimensions, offsets, and masses.
 - base_mobile.xacro: base_footprint and base_link.
+- wheels.xacro: left/right drive wheels and front caster.
 - camera.xacro: camera_link and camera_optical_frame.
 - arm_6dof.xacro: 6-axis manipulator up to gripper_mount_link.
 - gripper.xacro: palm, fingers, and tcp_link.
@@ -17,9 +18,10 @@ The top-level file includes modules in this order:
 
 1. dimensions.xacro
 2. base_mobile.xacro
-3. camera.xacro
-4. arm_6dof.xacro
-5. gripper.xacro
+3. wheels.xacro
+4. camera.xacro
+5. arm_6dof.xacro
+6. gripper.xacro
 
 Keep this order so every module sees the required global properties.
 

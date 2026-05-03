@@ -27,7 +27,12 @@
         <inertial>
             <origin xyz="0 0 ${palm_z/2}" rpy="0 0 0" />
             <mass value="${palm_mass}" />
-            <inertia ixx="0.0000060" ixy="0.0" ixz="0.0" iyy="0.0000073" iyz="0.0" izz="0.0000137" />
+            <inertia
+                ixx="${palm_mass * (palm_y * palm_y + palm_z * palm_z) / 12}"
+                ixy="0.0" ixz="0.0"
+                iyy="${palm_mass * (palm_x * palm_x + palm_z * palm_z) / 12}"
+                iyz="0.0"
+                izz="${palm_mass * (palm_x * palm_x + palm_y * palm_y) / 12}" />
         </inertial>
     </link>
 
@@ -59,7 +64,12 @@
         <inertial>
             <origin xyz="0 0 ${finger_z/2}" rpy="0 0 0" />
             <mass value="${finger_mass}" />
-            <inertia ixx="0.0000027" ixy="0.0" ixz="0.0" iyy="0.0000026" iyz="0.0" izz="0.0000003" />
+            <inertia
+                ixx="${finger_mass * (finger_y * finger_y + finger_z * finger_z) / 12}"
+                ixy="0.0" ixz="0.0"
+                iyy="${finger_mass * (finger_x * finger_x + finger_z * finger_z) / 12}"
+                iyz="0.0"
+                izz="${finger_mass * (finger_x * finger_x + finger_y * finger_y) / 12}" />
         </inertial>
     </link>
 
@@ -91,7 +101,12 @@
         <inertial>
             <origin xyz="0 0 ${finger_z/2}" rpy="0 0 0" />
             <mass value="${finger_mass}" />
-            <inertia ixx="0.0000027" ixy="0.0" ixz="0.0" iyy="0.0000026" iyz="0.0" izz="0.0000003" />
+            <inertia
+                ixx="${finger_mass * (finger_y * finger_y + finger_z * finger_z) / 12}"
+                ixy="0.0" ixz="0.0"
+                iyy="${finger_mass * (finger_x * finger_x + finger_z * finger_z) / 12}"
+                iyz="0.0"
+                izz="${finger_mass * (finger_x * finger_x + finger_y * finger_y) / 12}" />
         </inertial>
     </link>
 
