@@ -36,6 +36,7 @@ The docs folder contains implementation and operations details for the runtime s
 2. docs/development.md: build, launch, run, and test commands.
 3. docs/architecture.md: component responsibilities and data flow.
 4. docs/rviz_debug.md: RViz marker semantics and troubleshooting.
+5. docs/simulation_validation_commands.md: simulation validation commands used for Gazebo, RViz, TF, camera, and teleop checks.
 
 ## URDF Documentation
 

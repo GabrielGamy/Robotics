@@ -1,0 +1,211 @@
+<?xml version="1.0"?>
+<robot name="toy_robot" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+    <!-- =====================================================================
+         Gazebo material tags
+         Gazebo ignores URDF <material> tags and needs its own per-link entries.
+         ===================================================================== -->
+
+    <gazebo reference="base_link">
+        <visual>
+            <material>
+                <ambient>0.1 0.1 0.1 1</ambient>
+                <diffuse>0.1 0.1 0.1 1</diffuse>
+            </material>
+        </visual>
+    </gazebo>
+
+    <gazebo reference="left_wheel_link">
+        <visual>
+            <material>
+                <ambient>${color_wheel}</ambient>
+                <diffuse>${color_wheel}</diffuse>
+            </material>
+        </visual>
+        <mu1>1.0</mu1>
+        <mu2>1.0</mu2>
+        <kp>1e6</kp>
+        <kd>1.0</kd>
+    </gazebo>
+
+    <gazebo reference="right_wheel_link">
+        <visual>
+            <material>
+                <ambient>${color_wheel}</ambient>
+                <diffuse>${color_wheel}</diffuse>
+            </material>
+        </visual>
+        <mu1>1.0</mu1>
+        <mu2>1.0</mu2>
+        <kp>1e6</kp>
+        <kd>1.0</kd>
+    </gazebo>
+
+    <gazebo reference="caster_link">
+        <!-- Low friction so caster can swivel freely -->
+        <mu1>0.01</mu1>
+        <mu2>0.01</mu2>
+    </gazebo>
+
+    <gazebo reference="camera_link">
+        <visual>
+            <material>
+                <ambient>0.88 0.88 0.88 1</ambient>
+                <diffuse>0.88 0.88 0.88 1</diffuse>
+            </material>
+        </visual>
+    </gazebo>
+
+    <gazebo reference="shoulder_link">
+        <gravity>false</gravity>
+        <visual>
+            <material>
+                <ambient>${color_joint}</ambient>
+                <diffuse>${color_joint}</diffuse>
+            </material>
+        </visual>
+    </gazebo>
+
+    <gazebo reference="arm_link">
+        <gravity>false</gravity>
+        <visual>
+            <material>
+                <ambient>${color_link}</ambient>
+                <diffuse>${color_link}</diffuse>
+            </material>
+        </visual>
+    </gazebo>
+
+    <gazebo reference="elbow_link">
+        <gravity>false</gravity>
+        <visual>
+            <material>
+                <ambient>${color_joint}</ambient>
+                <diffuse>${color_joint}</diffuse>
+            </material>
+        </visual>
+    </gazebo>
+
+    <gazebo reference="forearm_link">
+        <gravity>false</gravity>
+        <visual>
+            <material>
+                <ambient>${color_link}</ambient>
+                <diffuse>${color_link}</diffuse>
+            </material>
+        </visual>
+    </gazebo>
+
+    <gazebo reference="wrist_link">
+        <gravity>false</gravity>
+        <visual>
+            <material>
+                <ambient>${color_joint}</ambient>
+                <diffuse>${color_joint}</diffuse>
+            </material>
+        </visual>
+    </gazebo>
+
+    <gazebo reference="hand_link">
+        <gravity>false</gravity>
+        <visual>
+            <material>
+                <ambient>${color_link}</ambient>
+                <diffuse>${color_link}</diffuse>
+            </material>
+        </visual>
+    </gazebo>
+
+    <gazebo reference="gripper_palm_link">
+        <gravity>false</gravity>
+        <visual>
+            <material>
+                <ambient>0.4 0.4 0.4 1</ambient>
+                <diffuse>0.4 0.4 0.4 1</diffuse>
+            </material>
+        </visual>
+    </gazebo>
+
+    <gazebo reference="gripper_left_link">
+        <gravity>false</gravity>
+        <visual>
+            <material>
+                <ambient>0.6 0.6 0.6 1</ambient>
+                <diffuse>0.6 0.6 0.6 1</diffuse>
+            </material>
+        </visual>
+    </gazebo>
+
+    <gazebo reference="gripper_right_link">
+        <gravity>false</gravity>
+        <visual>
+            <material>
+                <ambient>0.6 0.6 0.6 1</ambient>
+                <diffuse>0.6 0.6 0.6 1</diffuse>
+            </material>
+        </visual>
+    </gazebo>
+
+    <!-- Joint state publisher - broadcasts all joint positions so robot_state_publisher
+         can compute the full TF tree (arm, gripper) in both RViz and ROS. -->
+    <gazebo>
+        <plugin filename="gz-sim-joint-state-publisher-system"
+            name="gz::sim::systems::JointStatePublisher">
+            <topic>/joint_states</topic>
+        </plugin>
+    </gazebo>
+
+    <!-- =====================================================================
+         Differential drive plugin
+         Publishes /odom and subscribes to /cmd_vel.
+         wheel_separation = 2 * wheel_y = 2 * (base_radius + wheel_width/2)
+         ===================================================================== -->
+    <gazebo>
+        <plugin filename="gz-sim-diff-drive-system"
+            name="gz::sim::systems::DiffDrive">
+            <left_joint>left_wheel_joint</left_joint>
+            <right_joint>right_wheel_joint</right_joint>
+            <wheel_separation>${2 * wheel_y}</wheel_separation>
+            <wheel_radius>${wheel_radius}</wheel_radius>
+            <max_linear_acceleration>1.0</max_linear_acceleration>
+            <min_linear_acceleration>-1.0</min_linear_acceleration>
+            <max_angular_acceleration>2.0</max_angular_acceleration>
+            <min_angular_acceleration>-2.0</min_angular_acceleration>
+            <odom_publish_frequency>20</odom_publish_frequency>
+            <topic>/cmd_vel</topic>
+            <odom_topic>/odom</odom_topic>
+            <tf_topic>/tf</tf_topic>
+            <frame_id>odom</frame_id>
+            <child_frame_id>base_footprint</child_frame_id>
+        </plugin>
+    </gazebo>
+
+    <!-- =====================================================================
+         Camera sensor
+         Publishes to /camera/image_raw (bridged via ros_gz_bridge).
+         The gz-sim-sensors-system must be loaded at world level in the launch
+         file for this sensor to activate.
+         ===================================================================== -->
+    <gazebo reference="camera_link">
+        <sensor name="camera_sensor" type="camera">
+            <pose>0 0 ${camera_size_z} 0 0 0</pose>
+            <camera>
+                <horizontal_fov>1.047</horizontal_fov>
+                <image>
+                    <width>640</width>
+                    <height>480</height>
+                    <format>R8G8B8</format>
+                </image>
+                <clip>
+                    <near>0.1</near>
+                    <far>10.0</far>
+                </clip>
+            </camera>
+            <always_on>true</always_on>
+            <update_rate>30</update_rate>
+            <visualize>true</visualize>
+            <topic>/camera/image_raw</topic>
+        </sensor>
+    </gazebo>
+
+</robot>

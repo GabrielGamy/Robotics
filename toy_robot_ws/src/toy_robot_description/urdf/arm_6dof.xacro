@@ -6,6 +6,7 @@
         <child link="shoulder_link" />
         <origin xyz="${arm_mount_x} 0 ${arm_mount_z}" rpy="0 0 0" />
         <axis xyz="0 0 1" />
+        <dynamics damping="5.0" friction="2.0" />
         <limit effort="1000.0" velocity="1.0" lower="-3.14" upper="3.14" />
     </joint>
 
@@ -42,6 +43,7 @@
         <child link="arm_link" />
         <origin xyz="0 0 ${shoulder_length}" rpy="0 0 0" />
         <axis xyz="0 1 0" />
+        <dynamics damping="5.0" friction="2.0" />
         <limit effort="1000.0" velocity="1.0" lower="-1.57" upper="1.57" />
     </joint>
 
@@ -78,6 +80,7 @@
         <child link="elbow_link" />
         <origin xyz="0 0 ${arm_length}" rpy="0 0 0" />
         <axis xyz="0 1 0" />
+        <dynamics damping="5.0" friction="2.0" />
         <limit effort="1000.0" velocity="1.0" lower="-1.57" upper="1.57" />
     </joint>
 
@@ -114,6 +117,7 @@
         <child link="forearm_link" />
         <origin xyz="0 0 ${elbow_length}" rpy="0 0 0" />
         <axis xyz="0 0 1" />
+        <dynamics damping="5.0" friction="2.0" />
         <limit effort="1000.0" velocity="1.0" lower="-3.14" upper="3.14" />
     </joint>
 
@@ -150,6 +154,7 @@
         <child link="wrist_link" />
         <origin xyz="0 0 ${forearm_length}" rpy="0 0 0" />
         <axis xyz="0 1 0" />
+        <dynamics damping="5.0" friction="2.0" />
         <limit effort="1000.0" velocity="1.0" lower="-1.57" upper="1.57" />
     </joint>
 
@@ -186,6 +191,7 @@
         <child link="hand_link" />
         <origin xyz="0 0 ${wrist_height}" rpy="0 0 0" />
         <axis xyz="0 0 1" />
+        <dynamics damping="5.0" friction="2.0" />
     </joint>
 
     <link name="hand_link">

@@ -42,6 +42,7 @@
         <child link="gripper_left_link" />
         <origin xyz="0 ${finger_y_offset} ${palm_z}" rpy="0 0 0" />
         <axis xyz="0 1 0" />
+        <dynamics damping="10.0" friction="5.0" />
         <limit effort="100.0" velocity="0.5" lower="0.0" upper="${finger_open_max}" />
     </joint>
 
@@ -79,6 +80,7 @@
         <child link="gripper_right_link" />
         <origin xyz="0 -${finger_y_offset} ${palm_z}" rpy="0 0 0" />
         <axis xyz="0 -1 0" />
+        <dynamics damping="10.0" friction="5.0" />
         <limit effort="100.0" velocity="0.5" lower="0.0" upper="${finger_open_max}" />
     </joint>
 

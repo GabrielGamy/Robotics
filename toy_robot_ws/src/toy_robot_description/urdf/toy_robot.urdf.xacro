@@ -7,5 +7,6 @@
     <xacro:include filename="$(find toy_robot_description)/urdf/camera.xacro" />
     <xacro:include filename="$(find toy_robot_description)/urdf/arm_6dof.xacro" />
     <xacro:include filename="$(find toy_robot_description)/urdf/gripper.xacro" />
+    <xacro:include filename="$(find toy_robot_description)/urdf/gazebo_plugins.xacro" />
 
 </robot>
