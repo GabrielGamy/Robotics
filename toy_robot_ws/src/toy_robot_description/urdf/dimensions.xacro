@@ -4,7 +4,7 @@
     <!-- Base -->
     <xacro:property name="base_radius" value="0.2" />
     <xacro:property name="base_height" value="0.1" />
-    <xacro:property name="base_mass" value="2.0" />
+    <xacro:property name="base_mass" value="3.5" />
 
     <!-- Camera -->
     <xacro:property name="camera_size_x" value="0.03" />
@@ -58,7 +58,7 @@
     <!-- LiDAR -->
     <xacro:property name="lidar_radius" value="0.032" />
     <xacro:property name="lidar_size_z" value="0.038" />
-    <xacro:property name="lidar_mass" value="0.16" />
+    <xacro:property name="lidar_mass" value="0.08" />
 
     <!-- Wheels -->
     <xacro:property name="wheel_radius" value="0.05" />
