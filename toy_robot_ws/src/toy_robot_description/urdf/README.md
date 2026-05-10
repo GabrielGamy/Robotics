@@ -8,9 +8,10 @@ This folder contains the modular robot description for toy_robot_description.
 - base_mobile.xacro: base_footprint and base_link.
 - wheels.xacro: left/right drive wheels and front caster.
 - camera.xacro: camera_link and camera_optical_frame.
+- lidar.xacro: lidar_link for 2D laser scanner (Nav2 support).
 - arm_6dof.xacro: 6-axis manipulator up to gripper_mount_link.
 - gripper.xacro: palm, fingers, and tcp_link.
-- gazebo_plugins.xacro: Gazebo materials, differential drive plugin, and camera sensor.
+- gazebo_plugins.xacro: Gazebo materials, differential drive plugin, camera and LiDAR sensors.
 - toy_robot.urdf.xacro: top-level assembly with includes.
 
 ## Include Order
@@ -21,9 +22,10 @@ The top-level file includes modules in this order:
 2. base_mobile.xacro
 3. wheels.xacro
 4. camera.xacro
-5. arm_6dof.xacro
-6. gripper.xacro
-7. gazebo_plugins.xacro
+5. lidar.xacro
+6. arm_6dof.xacro
+7. gripper.xacro
+8. gazebo_plugins.xacro
 
 Keep this order so every module sees the required global properties.
 

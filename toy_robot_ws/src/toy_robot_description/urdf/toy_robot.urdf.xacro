@@ -5,6 +5,7 @@
     <xacro:include filename="$(find toy_robot_description)/urdf/base_mobile.xacro" />
     <xacro:include filename="$(find toy_robot_description)/urdf/wheels.xacro" />
     <xacro:include filename="$(find toy_robot_description)/urdf/camera.xacro" />
+    <xacro:include filename="$(find toy_robot_description)/urdf/lidar.xacro" />
     <xacro:include filename="$(find toy_robot_description)/urdf/arm_6dof.xacro" />
     <xacro:include filename="$(find toy_robot_description)/urdf/gripper.xacro" />
     <xacro:include filename="$(find toy_robot_description)/urdf/gazebo_plugins.xacro" />

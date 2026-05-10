@@ -1,10 +1,8 @@
 <?xml version="1.0"?>
 <robot name="toy_robot" xmlns:xacro="http://www.ros.org/wiki/xacro">
 
-    <!-- =====================================================================
-         Gazebo material tags
-         Gazebo ignores URDF <material> tags and needs its own per-link entries.
-         ===================================================================== -->
+    <!-- Gazebo material tags -->
+    <!-- Gazebo ignores URDF material tags and needs its own per-link entries -->
 
     <gazebo reference="base_link">
         <visual>
@@ -146,20 +144,9 @@
         </visual>
     </gazebo>
 
-    <!-- Joint state publisher - broadcasts all joint positions so robot_state_publisher
-         can compute the full TF tree (arm, gripper) in both RViz and ROS. -->
-    <gazebo>
-        <plugin filename="gz-sim-joint-state-publisher-system"
-            name="gz::sim::systems::JointStatePublisher">
-            <topic>/joint_states</topic>
-        </plugin>
-    </gazebo>
-
-    <!-- =====================================================================
-         Differential drive plugin
-         Publishes /odom and subscribes to /cmd_vel.
-         wheel_separation = 2 * wheel_y = 2 * (base_radius + wheel_width/2)
-         ===================================================================== -->
+    <!-- Differential drive plugin for mobile base -->
+    <!-- Publishes /odom and subscribes to /cmd_vel -->
+    <!-- wheel_separation = 2 * wheel_y = 2 * (base_radius + wheel_width/2) -->
     <gazebo>
         <plugin filename="gz-sim-diff-drive-system"
             name="gz::sim::systems::DiffDrive">
@@ -180,12 +167,54 @@
         </plugin>
     </gazebo>
 
-    <!-- =====================================================================
-         Camera sensor
-         Publishes to /camera/image_raw (bridged via ros_gz_bridge).
-         The gz-sim-sensors-system must be loaded at world level in the launch
-         file for this sensor to activate.
-         ===================================================================== -->
+    <!-- Joint state publisher - broadcasts all joint positions -->
+    <!-- Allows robot_state_publisher to compute full TF tree -->
+    <!-- (arm, gripper) in both RViz and ROS nodes -->
+    <gazebo>
+        <plugin filename="gz-sim-joint-state-publisher-system"
+            name="gz::sim::systems::JointStatePublisher">
+            <topic>/joint_states</topic>
+        </plugin>
+    </gazebo>
+
+    <!-- 2D LiDAR sensor for Nav2 navigation -->
+    <!-- Mounted on top center of robot -->
+    <!-- Publishes to /scan (bridged via ros_gz_bridge) -->
+    <!-- Requires gz-sim-sensors-system loaded at world level -->
+    <gazebo reference="lidar_link">
+        <sensor name="lidar_sensor" type="gpu_lidar">
+            <pose>0 0 0 0 0 0</pose>
+            <lidar>
+                <scan>
+                    <horizontal>
+                        <samples>360</samples>
+                        <resolution>1</resolution>
+                        <min_angle>0</min_angle>
+                        <max_angle>6.28318</max_angle>
+                    </horizontal>
+                </scan>
+                <range>
+                    <min>0.08</min>
+                    <max>10.0</max>
+                    <resolution>0.01</resolution>
+                </range>
+                <noise>
+                    <type>gaussian</type>
+                    <mean>0</mean>
+                    <stddev>0.01</stddev>
+                </noise>
+            </lidar>
+            <always_on>true</always_on>
+            <update_rate>10</update_rate>
+            <visualize>false</visualize>
+            <topic>/scan</topic>
+        </sensor>
+    </gazebo>
+
+    <!-- Camera sensor RGB image -->
+    <!-- Mounted on front of robot -->
+    <!-- Publishes to /camera/image_raw (bridged via ros_gz_bridge) -->
+    <!-- Requires gz-sim-sensors-system loaded at world level -->
     <gazebo reference="camera_link">
         <sensor name="camera_sensor" type="camera">
             <pose>0 0 ${camera_size_z} 0 0 0</pose>
