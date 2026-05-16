@@ -15,13 +15,19 @@ source install/setup.bash
 Build after description/launch/world changes:
 
 ```bash
-colcon build --packages-select toy_robot_description
+colcon build --packages-select toy_robot_description toy_robot_bringup
 source install/setup.bash
 ```
 
 ## 1) Launch Simulation
 
-Launch Gazebo + robot + bridge + RViz:
+Launch Gazebo + robot + bridge + RViz (recommended high-level entrypoint):
+
+```bash
+ros2 launch toy_robot_bringup simulation.launch.xml
+```
+
+Low-level equivalent (from description package):
 
 ```bash
 ros2 launch toy_robot_description gazebo.launch.xml

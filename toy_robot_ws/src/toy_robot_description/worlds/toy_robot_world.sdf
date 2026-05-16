@@ -1,6 +1,16 @@
-<?xml version="1.0" ?>
+<?xml version="1.0"?>
+<!--
+  Apartment world: 10m x 8m
+  - Living room (salon): x=-5 to 1, y=-4 to 4
+  - Bedroom 1 (north):   x= 1 to 5, y= 0 to 4
+  - Bedroom 2 (south):   x= 1 to 5, y=-4 to 0
+  - Main entrance door:  south wall of living room, gap x=-2 to 0
+  - Living/bedroom door: interior wall x=1, gap y=-1 to 1
+  - Bedroom divider door: y=0 wall, gap x=2.5 to 4
+  Robot spawns at (0,0) = living room near the passage to bedrooms.
+-->
 <sdf version="1.9">
-  <world name="default">
+  <world name="apartment">
     <gravity>0 0 -9.81</gravity>
 
     <plugin filename="gz-sim-physics-system" name="gz::sim::systems::Physics" />
@@ -48,5 +58,292 @@
         </visual>
       </link>
     </model>
+
+    <!-- ===== OUTER WALLS ===== -->
+
+    <!-- North wall: full width 10m at y=4 -->
+    <model name="wall_north">
+      <static>true</static>
+      <pose>0 4 0.5 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>10.1 0.1 1</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>10.1 0.1 1</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.75 0.75 0.75 1</ambient>
+            <diffuse>0.85 0.85 0.85 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- South wall: two segments with entrance door gap (x=-2 to 0) -->
+    <model name="wall_south_west">
+      <static>true</static>
+      <pose>-3.5 -4 0.5 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>3 0.1 1</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>3 0.1 1</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.75 0.75 0.75 1</ambient>
+            <diffuse>0.85 0.85 0.85 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name="wall_south_east">
+      <static>true</static>
+      <pose>2.5 -4 0.5 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>5 0.1 1</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>5 0.1 1</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.75 0.75 0.75 1</ambient>
+            <diffuse>0.85 0.85 0.85 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- West wall: full height 8m at x=-5 -->
+    <model name="wall_west">
+      <static>true</static>
+      <pose>-5 0 0.5 0 0 1.5708</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>8 0.1 1</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>8 0.1 1</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.75 0.75 0.75 1</ambient>
+            <diffuse>0.85 0.85 0.85 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- East wall: full height 8m at x=5 -->
+    <model name="wall_east">
+      <static>true</static>
+      <pose>5 0 0.5 0 0 1.5708</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>8 0.1 1</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>8 0.1 1</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.75 0.75 0.75 1</ambient>
+            <diffuse>0.85 0.85 0.85 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- ===== INTERIOR WALLS ===== -->
+
+    <!-- Living room / bedroom divider at x=1: two segments with door gap y=-1 to y=1 -->
+    <model name="wall_div_north">
+      <static>true</static>
+      <pose>1 2.5 0.5 0 0 1.5708</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>3 0.1 1</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>3 0.1 1</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.7 0.65 0.6 1</ambient>
+            <diffuse>0.8 0.75 0.7 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name="wall_div_south">
+      <static>true</static>
+      <pose>1 -2.5 0.5 0 0 1.5708</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>3 0.1 1</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>3 0.1 1</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.7 0.65 0.6 1</ambient>
+            <diffuse>0.8 0.75 0.7 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- Bedroom 1 / Bedroom 2 divider at y=0 (x=1 to x=5): door gap x=2.5 to x=4 -->
+    <model name="wall_bedroom_west">
+      <static>true</static>
+      <pose>1.75 0 0.5 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>1.5 0.1 1</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>1.5 0.1 1</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.7 0.65 0.6 1</ambient>
+            <diffuse>0.8 0.75 0.7 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name="wall_bedroom_east">
+      <static>true</static>
+      <pose>4.5 0 0.5 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>1 0.1 1</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>1 0.1 1</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.7 0.65 0.6 1</ambient>
+            <diffuse>0.8 0.75 0.7 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- ===== LIVING ROOM FURNITURE ===== -->
+
+    <!-- Coffee table: 1.0 x 0.6 x 0.4m, centre of living room -->
+    <model name="table">
+      <static>true</static>
+      <pose>-2.5 1.5 0.2 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>1.0 0.6 0.4</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>1.0 0.6 0.4</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.5 0.35 0.15 1</ambient>
+            <diffuse>0.6 0.45 0.2 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- TV stand: 1.2 x 0.35 x 0.5m, against north wall -->
+    <model name="tv_stand">
+      <static>true</static>
+      <pose>-3 3.7 0.25 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>1.2 0.35 0.5</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>1.2 0.35 0.5</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.15 0.1 0.1 1</ambient>
+            <diffuse>0.2 0.15 0.15 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
   </world>
 </sdf>

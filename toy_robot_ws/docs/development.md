@@ -6,7 +6,8 @@ This guide contains build, launch, run, and test commands for daily development.
 
 ```bash
 cd /home/gabrielgamy/src/robotics/toy_robot_ws
-colcon build --packages-select toy_robot --symlink-install
+source /opt/ros/jazzy/setup.bash
+colcon build --packages-select toy_robot toy_robot_description toy_robot_bringup --symlink-install
 source install/setup.bash
 ```
 
@@ -22,6 +23,35 @@ Notes:
 cd /home/gabrielgamy/src/robotics/toy_robot_ws
 source install/setup.bash
 ros2 launch toy_robot robot.launch.xml
+```
+
+## Launch Simulation / SLAM / Navigation
+
+Simulation (recommended entrypoint):
+
+```bash
+cd /home/gabrielgamy/src/robotics/toy_robot_ws
+source /opt/ros/jazzy/setup.bash
+source install/setup.bash
+ros2 launch toy_robot_bringup simulation.launch.xml
+```
+
+SLAM mapping:
+
+```bash
+ros2 launch toy_robot_bringup slam.launch.xml
+```
+
+Navigation with a saved map:
+
+```bash
+ros2 launch toy_robot_bringup navigation.launch.xml
+```
+
+To launch with a different map, override the default:
+
+```bash
+ros2 launch toy_robot_bringup navigation.launch.xml map:=/absolute/path/to/map.yaml
 ```
 
 ## Launch With Custom Configuration

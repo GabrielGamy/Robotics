@@ -1,0 +1,40 @@
+<launch>
+
+    <!-- Arguments -->
+    <arg name="rviz" default="true" description="Launch RViz" />
+    <arg name="use_sim_time" default="true" description="Use Gazebo simulation clock" />
+    <arg name="rviz_config"
+        default="$(find-pkg-share toy_robot_bringup)/rviz/navigation.rviz"
+        description="Path to RViz config file" />
+    <arg name="spawn_x" default="-2.0" description="Robot spawn x position in Gazebo" />
+    <arg name="spawn_y" default="0.0" description="Robot spawn y position in Gazebo" />
+    <arg name="spawn_z" default="0.10" description="Robot spawn z position in Gazebo" />
+    <arg name="map"
+        default="$(find-pkg-share toy_robot_bringup)/maps/toy_robot_map.yaml"
+        description="Full path to the map YAML file. Defaults to the packaged demo/reference map, but can be overridden with map:=..." />
+    <arg name="nav2_params_file"
+        default="$(find-pkg-share toy_robot_bringup)/config/nav2_params.yaml"
+        description="Path to Nav2 parameters file" />
+
+    <!-- 1. Gazebo simulation -->
+    <include file="$(find-pkg-share toy_robot_description)/launch/gazebo.launch.xml">
+        <arg name="rviz" value="false" />
+        <arg name="x" value="$(var spawn_x)" />
+        <arg name="y" value="$(var spawn_y)" />
+        <arg name="z" value="$(var spawn_z)" />
+    </include>
+
+    <!-- 2. Nav2 (AMCL localization + planners + costmaps) -->
+    <include file="$(find-pkg-share nav2_bringup)/launch/bringup_launch.py">
+        <arg name="use_sim_time" value="$(var use_sim_time)" />
+        <arg name="map" value="$(var map)" />
+        <arg name="params_file" value="$(var nav2_params_file)" />
+        <arg name="use_composition" value="False" />
+    </include>
+
+    <!-- 3. RViz with Nav2 config (map + costmaps + path + goal tool) -->
+    <node pkg="rviz2" exec="rviz2" output="screen" args="-d $(var rviz_config)">
+        <param name="use_sim_time" value="$(var use_sim_time)" />
+    </node>
+
+</launch>

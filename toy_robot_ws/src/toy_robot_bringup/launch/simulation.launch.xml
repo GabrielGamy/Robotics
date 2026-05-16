@@ -1,0 +1,25 @@
+<launch>
+
+    <!-- Arguments -->
+    <arg name="rviz" default="true" description="Launch RViz alongside the simulation" />
+    <arg name="rviz_config"
+        default="$(find-pkg-share toy_robot_bringup)/rviz/simulation.rviz"
+        description="Path to RViz config file" />
+    <arg name="x" default="0.0" />
+    <arg name="y" default="0.0" />
+    <arg name="z" default="0.06" />
+
+    <!-- Gazebo + bridge + robot_state_publisher -->
+    <include file="$(find-pkg-share toy_robot_description)/launch/gazebo.launch.xml">
+        <arg name="rviz" value="false" />
+        <arg name="x" value="$(var x)" />
+        <arg name="y" value="$(var y)" />
+        <arg name="z" value="$(var z)" />
+    </include>
+
+    <!-- RViz with simulation config -->
+    <node pkg="rviz2" exec="rviz2" output="screen" if="$(var rviz)" args="-d $(var rviz_config)">
+        <param name="use_sim_time" value="true" />
+    </node>
+
+</launch>
