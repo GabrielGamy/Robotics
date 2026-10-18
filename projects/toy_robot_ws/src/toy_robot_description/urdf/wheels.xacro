@@ -1,0 +1,111 @@
+<?xml version="1.0"?>
+<robot name="toy_robot" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+    <!-- Roue gauche -->
+    <joint name="left_wheel_joint" type="continuous">
+        <parent link="base_link" />
+        <child link="left_wheel_link" />
+        <origin xyz="0 ${wheel_y} 0" rpy="0 0 0" />
+        <axis xyz="0 1 0" />
+    </joint>
+
+    <link name="left_wheel_link">
+        <visual>
+            <geometry>
+                <cylinder length="${wheel_width}" radius="${wheel_radius}" />
+            </geometry>
+            <origin xyz="0 0 0" rpy="1.5707963 0 0" />
+            <material name="wheel_rubber">
+                <color rgba="${color_wheel}" />
+            </material>
+        </visual>
+        <collision>
+            <geometry>
+                <cylinder length="${wheel_width}" radius="${wheel_radius}" />
+            </geometry>
+            <origin xyz="0 0 0" rpy="1.5707963 0 0" />
+        </collision>
+        <inertial>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <mass value="${wheel_mass}" />
+            <inertia
+                ixx="${wheel_mass * (3 * wheel_radius * wheel_radius + wheel_width * wheel_width) / 12}"
+                ixy="0.0" ixz="0.0"
+                iyy="${wheel_mass * wheel_radius * wheel_radius / 2}"
+                iyz="0.0"
+                izz="${wheel_mass * (3 * wheel_radius * wheel_radius + wheel_width * wheel_width) / 12}" />
+        </inertial>
+    </link>
+
+    <!-- Roue droite -->
+    <joint name="right_wheel_joint" type="continuous">
+        <parent link="base_link" />
+        <child link="right_wheel_link" />
+        <origin xyz="0 ${-wheel_y} 0" rpy="0 0 0" />
+        <axis xyz="0 1 0" />
+    </joint>
+
+    <link name="right_wheel_link">
+        <visual>
+            <geometry>
+                <cylinder length="${wheel_width}" radius="${wheel_radius}" />
+            </geometry>
+            <origin xyz="0 0 0" rpy="1.5707963 0 0" />
+            <material name="wheel_rubber">
+                <color rgba="${color_wheel}" />
+            </material>
+        </visual>
+        <collision>
+            <geometry>
+                <cylinder length="${wheel_width}" radius="${wheel_radius}" />
+            </geometry>
+            <origin xyz="0 0 0" rpy="1.5707963 0 0" />
+        </collision>
+        <inertial>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <mass value="${wheel_mass}" />
+            <inertia
+                ixx="${wheel_mass * (3 * wheel_radius * wheel_radius + wheel_width * wheel_width) / 12}"
+                ixy="0.0" ixz="0.0"
+                iyy="${wheel_mass * wheel_radius * wheel_radius / 2}"
+                iyz="0.0"
+                izz="${wheel_mass * (3 * wheel_radius * wheel_radius + wheel_width * wheel_width) / 12}" />
+        </inertial>
+    </link>
+
+    <!-- Roulette avant (caster) -->
+    <joint name="caster_joint" type="fixed">
+        <parent link="base_link" />
+        <child link="caster_link" />
+        <origin xyz="${base_radius * 0.65} 0 ${-(wheel_radius - caster_radius)}" rpy="0 0 0" />
+    </joint>
+
+    <link name="caster_link">
+        <visual>
+            <geometry>
+                <sphere radius="${caster_radius}" />
+            </geometry>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <material name="caster_gray">
+                <color rgba="${color_joint}" />
+            </material>
+        </visual>
+        <collision>
+            <geometry>
+                <sphere radius="${caster_radius}" />
+            </geometry>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+        </collision>
+        <inertial>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <mass value="${caster_mass}" />
+            <inertia
+                ixx="${2 * caster_mass * caster_radius * caster_radius / 5}"
+                ixy="0.0" ixz="0.0"
+                iyy="${2 * caster_mass * caster_radius * caster_radius / 5}"
+                iyz="0.0"
+                izz="${2 * caster_mass * caster_radius * caster_radius / 5}" />
+        </inertial>
+    </link>
+
+</robot>

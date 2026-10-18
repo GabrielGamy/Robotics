@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+<robot name="toy_robot" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+    <!-- 2D LiDAR Laser Scanner -->
+    <!-- Mounted on top center of the base for 360 degree scan -->
+    <!-- Publishes to /scan (bridged via ros_gz_bridge) -->
+
+    <!-- LiDAR mount joint - fixed to base_link, centered on top -->
+    <joint name="lidar_mount_joint" type="fixed">
+        <parent link="base_link" />
+        <child link="lidar_link" />
+        <origin xyz="0 0 ${base_height + lidar_size_z/2}" rpy="0 0 0" />
+    </joint>
+
+    <!-- LiDAR link -->
+    <link name="lidar_link">
+        <visual>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <geometry>
+                <cylinder radius="${lidar_radius}" length="${lidar_size_z}" />
+            </geometry>
+            <material name="lidar_body">
+                <color rgba="${color_lidar}" />
+            </material>
+        </visual>
+        <collision>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <geometry>
+                <cylinder radius="${lidar_radius}" length="${lidar_size_z}" />
+            </geometry>
+        </collision>
+        <inertial>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <mass value="${lidar_mass}" />
+            <inertia
+                ixx="${lidar_mass * (3 * lidar_radius * lidar_radius + lidar_size_z * lidar_size_z) / 12}"
+                ixy="0"
+                ixz="0"
+                iyy="${lidar_mass * (3 * lidar_radius * lidar_radius + lidar_size_z * lidar_size_z) / 12}"
+                iyz="0"
+                izz="${lidar_mass * lidar_radius * lidar_radius / 2}" />
+        </inertial>
+    </link>
+
+</robot>

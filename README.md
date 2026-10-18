@@ -1,20 +1,45 @@
 # Robotics
 
-ROS 2 robotics projects and experiments.
+A multi-project repository for ROS 2 robotics experiments, robot demos, and simulation work.
 
-## Workspace
+## Repository layout
 
-- [toy_robot_ws/](toy_robot_ws/) — main ROS 2 workspace containing:
-  - toy_robot_description: modular URDF/xacro robot description (mobile base, camera, 6-DOF arm, gripper)
-  - toy_robot_interfaces: custom ROS 2 interfaces used by runtime nodes
-  - toy_robot: runtime behavior stack (perception, state machine, navigation integration, RViz debug markers)
+The repo is now organized around independent projects rather than a single monolithic workspace:
 
-See [toy_robot_ws/README.md](toy_robot_ws/README.md) for build, launch, and detailed documentation.
+```text
+Robotics/
+├── README.md
+├── docs/
+├── projects/
+│   ├── toy_robot_ws/
+│   ├── arm_demo_ws/
+│   ├── mobile_base_ws/
+│   └── ...
+├── scripts/
+├── shared/
+└── .gitignore
+```
 
-## Quick Start
+## Projects
+
+- [projects/toy_robot_ws/](projects/toy_robot_ws/) — the current ROS 2 toy robot workspace
+  - `toy_robot_description`: modular URDF/xacro robot description
+  - `toy_robot_interfaces`: custom ROS 2 interfaces
+  - `toy_robot`: behavior, perception, navigation, and debugging logic
+
+See [projects/toy_robot_ws/README.md](projects/toy_robot_ws/README.md) for the project-specific build and launch instructions.
+
+## Design goals
+
+- keep each robot or experiment in its own workspace
+- avoid cross-project package collisions
+- make new robotic efforts easy to add without reworking the repo
+- keep shared docs and scripts separate from project-specific ROS packages
+
+## Current project quick start
 
 ```bash
-cd toy_robot_ws
+cd ~/Robotics/projects/toy_robot_ws
 source /opt/ros/jazzy/setup.bash
 colcon build --symlink-install
 source install/setup.bash
@@ -24,23 +49,17 @@ ros2 launch toy_robot robot.launch.xml
 URDF-only visualization:
 
 ```bash
-cd toy_robot_ws
+cd ~/Robotics/projects/toy_robot_ws
 source /opt/ros/jazzy/setup.bash
 colcon build --packages-select toy_robot_description
 source install/setup.bash
 ros2 launch toy_robot_description display.launch.xml
 ```
 
-## Requirements
-
-- ROS 2 Jazzy
-- xacro, robot_state_publisher, joint_state_publisher_gui, rviz2
-- nav2 (for full toy_robot launch flow)
-
 ## Documentation
 
-- [toy_robot_ws/docs/index.md](toy_robot_ws/docs/index.md) — documentation entry point
-- [toy_robot_ws/docs/development.md](toy_robot_ws/docs/development.md) — build, launch, and test workflow
-- [toy_robot_ws/docs/architecture.md](toy_robot_ws/docs/architecture.md) — runtime architecture and data flow
-- [toy_robot_ws/docs/rviz_debug.md](toy_robot_ws/docs/rviz_debug.md) — marker semantics and troubleshooting
-- [toy_robot_ws/src/toy_robot_description/urdf/README.md](toy_robot_ws/src/toy_robot_description/urdf/README.md) — URDF/xacro modularization and dimension dependencies
+- [projects/toy_robot_ws/docs/index.md](projects/toy_robot_ws/docs/index.md)
+- [projects/toy_robot_ws/docs/development.md](projects/toy_robot_ws/docs/development.md)
+- [projects/toy_robot_ws/docs/architecture.md](projects/toy_robot_ws/docs/architecture.md)
+- [projects/toy_robot_ws/docs/rviz_debug.md](projects/toy_robot_ws/docs/rviz_debug.md)
+- [projects/toy_robot_ws/src/toy_robot_description/urdf/README.md](projects/toy_robot_ws/src/toy_robot_description/urdf/README.md)
