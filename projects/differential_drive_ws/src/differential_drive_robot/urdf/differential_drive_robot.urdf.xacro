@@ -1,0 +1,40 @@
+<?xml version="1.0"?>
+<robot name="differential_drive_robot" xmlns:xacro="http://wiki.ros.org/xacro">
+
+    <xacro:include filename="$(find differential_drive_robot)/urdf/properties.xacro" />
+    <xacro:include filename="$(find differential_drive_robot)/urdf/materials.xacro" />
+    <xacro:include filename="$(find differential_drive_robot)/urdf/base.xacro" />
+    <xacro:include filename="$(find differential_drive_robot)/urdf/wheels.xacro" />
+
+    <link name="caster_link">
+        <visual>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <geometry>
+                <sphere radius="${caster_radius}" />
+            </geometry>
+            <material name="gray" />
+        </visual>
+
+        <collision>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <geometry>
+                <sphere radius="${caster_radius}" />
+            </geometry>
+        </collision>
+
+        <inertial>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <mass value="${caster_mass}" />
+            <inertia ixx="${caster_inertia_ixx}" ixy="0.0" ixz="0.0"
+                iyy="${caster_inertia_iyy}" iyz="0.0"
+                izz="${caster_inertia_izz}" />
+        </inertial>
+    </link>
+
+    <joint name="caster_joint" type="fixed">
+        <parent link="base_link" />
+        <child link="caster_link" />
+        <origin xyz="0.12 0 -0.03" rpy="0 0 0" />
+    </joint>
+
+</robot>
