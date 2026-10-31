@@ -12,7 +12,7 @@ This workspace contains four ROS 2 packages:
 Build all packages, source, and launch the runtime behavior stack:
 
 ```bash
-cd /home/gabrielgamy/src/robotics/toy_robot_ws
+cd /home/gabrielgamy/src/robotics/projects/toy_robot_ws
 source /opt/ros/jazzy/setup.bash
 colcon build --symlink-install
 source install/setup.bash
@@ -22,7 +22,7 @@ ros2 launch toy_robot robot.launch.xml
 Simulation entrypoint (recommended):
 
 ```bash
-cd /home/gabrielgamy/src/robotics/toy_robot_ws
+cd /home/gabrielgamy/src/robotics/projects/toy_robot_ws
 source /opt/ros/jazzy/setup.bash
 colcon build --packages-select toy_robot_description toy_robot_bringup
 source install/setup.bash
@@ -50,7 +50,7 @@ ros2 launch toy_robot_bringup navigation.launch.xml map:=/absolute/path/to/map.y
 URDF-only RViz visualization:
 
 ```bash
-cd /home/gabrielgamy/src/robotics/toy_robot_ws
+cd /home/gabrielgamy/src/robotics/projects/toy_robot_ws
 source /opt/ros/jazzy/setup.bash
 colcon build --packages-select toy_robot_description
 source install/setup.bash
@@ -84,7 +84,7 @@ This guide explains:
 ## Package Structure
 
 ```text
-toy_robot_ws/src/
+projects/toy_robot_ws/src/
 ├── toy_robot/
 │   ├── config/
 │   ├── launch/
@@ -125,7 +125,7 @@ toy_robot_ws/src/
 ## Workspace Structure
 
 ```text
-toy_robot_ws/
+projects/toy_robot_ws/
 ├── src/
 │   ├── toy_robot/
 │   ├── toy_robot_description/

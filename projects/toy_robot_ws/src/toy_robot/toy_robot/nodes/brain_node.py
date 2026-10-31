@@ -9,13 +9,13 @@ from rclpy.duration import Duration
 from rclpy.executors import ExternalShutdownException
 from rclpy.node import Node
 from tf2_ros import Buffer, TransformListener
-from toy_robot_interfaces.action import DropObject, PickObject
 
-from toy_robot.behavior.brain_controller import BrainController, RobotState
+from toy_robot.behavior.brain_controller import BrainController
 from toy_robot.config.node_config import BrainNodeConfig, MarkerConfig
 from toy_robot.models.target import Target
 from toy_robot.tf.transformer import CoordinateTransformer
 from toy_robot.visualization.marker_visualizer import MarkerVisualizer
+from toy_robot_interfaces.action import DropObject, PickObject
 
 
 class BrainNode(Node):

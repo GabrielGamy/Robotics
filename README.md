@@ -2,19 +2,37 @@
 
 ROS 2 robotics projects and experiments.
 
-## Workspace
+## Repository layout
 
-- [toy_robot_ws/](toy_robot_ws/) — main ROS 2 workspace containing:
-  - toy_robot_description: modular URDF/xacro robot description (mobile base, camera, 6-DOF arm, gripper)
-  - toy_robot_interfaces: custom ROS 2 interfaces used by runtime nodes
-  - toy_robot: runtime behavior stack (perception, state machine, navigation integration, RViz debug markers)
+This repository is organized as a multi-project workspace:
 
-See [toy_robot_ws/README.md](toy_robot_ws/README.md) for build, launch, and detailed documentation.
+```text
+Robotics/
+├── README.md
+├── docs/
+├── projects/
+│   └── toy_robot_ws/
+├── scripts/
+├── shared/
+├── build/
+├── install/
+├── log/
+└── maps/
+```
+
+## Active project
+
+- [projects/toy_robot_ws/](projects/toy_robot_ws/) — main ROS 2 workspace for the toy robot project
+  - `toy_robot_description`: modular URDF/xacro robot model, Gazebo world, and launch files
+  - `toy_robot_interfaces`: custom ROS 2 interfaces for runtime nodes
+  - `toy_robot`: runtime behavior, perception, navigation, and visualization stack
+
+See [projects/toy_robot_ws/README.md](projects/toy_robot_ws/README.md) for project-specific build and launch instructions.
 
 ## Quick Start
 
 ```bash
-cd toy_robot_ws
+cd ~/Robotics/projects/toy_robot_ws
 source /opt/ros/jazzy/setup.bash
 colcon build --symlink-install
 source install/setup.bash
@@ -24,7 +42,7 @@ ros2 launch toy_robot robot.launch.xml
 URDF-only visualization:
 
 ```bash
-cd toy_robot_ws
+cd ~/Robotics/projects/toy_robot_ws
 source /opt/ros/jazzy/setup.bash
 colcon build --packages-select toy_robot_description
 source install/setup.bash
@@ -35,12 +53,12 @@ ros2 launch toy_robot_description display.launch.xml
 
 - ROS 2 Jazzy
 - xacro, robot_state_publisher, joint_state_publisher_gui, rviz2
-- nav2 (for full toy_robot launch flow)
+- nav2 (for the full toy_robot launch flow)
 
 ## Documentation
 
-- [toy_robot_ws/docs/index.md](toy_robot_ws/docs/index.md) — documentation entry point
-- [toy_robot_ws/docs/development.md](toy_robot_ws/docs/development.md) — build, launch, and test workflow
-- [toy_robot_ws/docs/architecture.md](toy_robot_ws/docs/architecture.md) — runtime architecture and data flow
-- [toy_robot_ws/docs/rviz_debug.md](toy_robot_ws/docs/rviz_debug.md) — marker semantics and troubleshooting
-- [toy_robot_ws/src/toy_robot_description/urdf/README.md](toy_robot_ws/src/toy_robot_description/urdf/README.md) — URDF/xacro modularization and dimension dependencies
+- [projects/toy_robot_ws/docs/index.md](projects/toy_robot_ws/docs/index.md) — documentation entry point
+- [projects/toy_robot_ws/docs/development.md](projects/toy_robot_ws/docs/development.md) — build, launch, and test workflow
+- [projects/toy_robot_ws/docs/architecture.md](projects/toy_robot_ws/docs/architecture.md) — runtime architecture and data flow
+- [projects/toy_robot_ws/docs/rviz_debug.md](projects/toy_robot_ws/docs/rviz_debug.md) — marker semantics and troubleshooting
+- [projects/toy_robot_ws/src/toy_robot_description/urdf/README.md](projects/toy_robot_ws/src/toy_robot_description/urdf/README.md) — URDF/xacro modularization and dimension dependencies
