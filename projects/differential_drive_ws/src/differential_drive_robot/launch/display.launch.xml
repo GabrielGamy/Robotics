@@ -1,4 +1,13 @@
 <launch>
+    <!--
+            File: display.launch.xml
+            Purpose: Pure RViz/URDF visualization (no Gazebo simulation).
+            Use when: validating robot geometry, links, joints, and TF tree manually.
+
+            Example:
+            ros2 launch differential_drive_robot display.launch.xml
+        -->
+
     <arg name="model"
         default="$(find-pkg-share differential_drive_robot)/urdf/differential_drive_robot.urdf.xacro" />
 

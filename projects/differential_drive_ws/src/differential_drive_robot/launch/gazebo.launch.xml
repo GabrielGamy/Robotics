@@ -1,4 +1,14 @@
 <launch>
+    <!--
+            File: gazebo.launch.xml
+            Purpose: Full Gazebo simulation stack for the differential drive robot.
+            Starts: Gazebo (ros_gz_sim), robot_state_publisher, model spawn, ros_gz bridge,
+                            and optional RViz.
+
+            Example:
+            ros2 launch differential_drive_robot gazebo.launch.xml
+        -->
+
     <arg name="model"
         default="$(find-pkg-share differential_drive_robot)/urdf/differential_drive_robot.urdf.xacro" />
     <arg name="world" default="$(find-pkg-share differential_drive_robot)/worlds/simple_world.sdf"
