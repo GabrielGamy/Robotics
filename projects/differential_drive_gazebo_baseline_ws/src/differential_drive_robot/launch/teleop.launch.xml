@@ -1,0 +1,46 @@
+<launch>
+    <!--
+            File: teleop.launch.xml
+            Purpose: Keyboard teleoperation node for publishing Twist commands.
+            Use when: simulation is already running and you want to drive the robot.
+
+            Notes:
+            teleop_twist_keyboard needs an interactive TTY.
+            If the default terminal prefix fails on your desktop, override it.
+
+            Example:
+            ros2 launch differential_drive_robot teleop.launch.xml
+
+            Example (override terminal prefix, useful when gnome-terminal is unavailable):
+            ros2 launch differential_drive_robot teleop.launch.xml terminal_prefix:="xfce4-terminal -e"
+
+            Example (run without terminal prefix, use current shell TTY):
+            ros2 launch differential_drive_robot teleop.launch.xml use_terminal_prefix:=false
+        -->
+
+    <arg name="cmd_vel_topic" default="/cmd_vel" />
+    <arg name="terminal_prefix" default="gnome-terminal --" />
+    <arg name="use_terminal_prefix" default="true"
+        description="If true, run teleop in a separate terminal to provide keyboard TTY" />
+
+    <node
+        pkg="teleop_twist_keyboard"
+        exec="teleop_twist_keyboard"
+        name="teleop_twist_keyboard"
+        output="screen"
+        emulate_tty="true"
+        if="$(var use_terminal_prefix)"
+        launch-prefix="$(var terminal_prefix)">
+        <remap from="/cmd_vel" to="$(var cmd_vel_topic)" />
+    </node>
+
+    <node
+        pkg="teleop_twist_keyboard"
+        exec="teleop_twist_keyboard"
+        name="teleop_twist_keyboard"
+        output="screen"
+        emulate_tty="true"
+        unless="$(var use_terminal_prefix)">
+        <remap from="/cmd_vel" to="$(var cmd_vel_topic)" />
+    </node>
+</launch>

@@ -1,0 +1,25 @@
+<launch>
+    <!--
+            File: sim.launch.xml
+            Purpose: High-level simulation entry point.
+            Notes: Thin wrapper around gazebo.launch.xml that forwards common runtime args.
+            Use when: you want a stable top-level command for simulation.
+
+            Example:
+            ros2 launch differential_drive_robot sim.launch.xml
+        -->
+
+    <arg name="rviz" default="true" description="Set to false to skip RViz" />
+    <arg name="world" default="$(find-pkg-share differential_drive_robot)/worlds/simple_world.sdf" />
+    <arg name="x" default="0.0" />
+    <arg name="y" default="0.0" />
+    <arg name="z" default="0.06" />
+
+    <include file="$(find-pkg-share differential_drive_robot)/launch/gazebo.launch.xml">
+        <arg name="rviz" value="$(var rviz)" />
+        <arg name="world" value="$(var world)" />
+        <arg name="x" value="$(var x)" />
+        <arg name="y" value="$(var y)" />
+        <arg name="z" value="$(var z)" />
+    </include>
+</launch>
