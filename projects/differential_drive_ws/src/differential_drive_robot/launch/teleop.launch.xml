@@ -18,7 +18,7 @@
             ros2 launch differential_drive_robot teleop.launch.xml use_terminal_prefix:=false
         -->
 
-    <arg name="cmd_vel_topic" default="/cmd_vel" />
+    <arg name="cmd_vel_topic" default="/diff_drive_controller/cmd_vel" />
     <arg name="terminal_prefix" default="gnome-terminal --" />
     <arg name="use_terminal_prefix" default="true"
         description="If true, run teleop in a separate terminal to provide keyboard TTY" />
@@ -31,6 +31,8 @@
         emulate_tty="true"
         if="$(var use_terminal_prefix)"
         launch-prefix="$(var terminal_prefix)">
+        <param name="stamped" value="true" />
+        <param name="frame_id" value="base_link" />
         <remap from="/cmd_vel" to="$(var cmd_vel_topic)" />
     </node>
 
@@ -41,6 +43,8 @@
         output="screen"
         emulate_tty="true"
         unless="$(var use_terminal_prefix)">
+        <param name="stamped" value="true" />
+        <param name="frame_id" value="base_link" />
         <remap from="/cmd_vel" to="$(var cmd_vel_topic)" />
     </node>
 </launch>

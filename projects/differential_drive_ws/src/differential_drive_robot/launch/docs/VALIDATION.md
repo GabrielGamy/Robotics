@@ -27,7 +27,7 @@ Expected:
 ## 3. Check Core Topics
 
 ```bash
-ros2 topic list | grep -E '^/clock$|^/joint_states$|^/tf$|^/tf_static$|^/odom$|^/cmd_vel$'
+ros2 topic list | grep -E '^/clock$|^/joint_states$|^/tf$|^/tf_static$|^/diff_drive_controller/cmd_vel$|^/diff_drive_controller/odom$|^/odom$'
 ```
 
 Expected topics present:
@@ -35,8 +35,9 @@ Expected topics present:
 - `/joint_states`
 - `/tf`
 - `/tf_static`
+- `/diff_drive_controller/cmd_vel`
+- `/diff_drive_controller/odom`
 - `/odom`
-- `/cmd_vel`
 
 ## 4. Drive the Robot
 
@@ -58,7 +59,7 @@ ros2 launch differential_drive_robot teleop.launch.xml terminal_prefix:="xfce4-t
 Fallback (direct run):
 
 ```bash
-ros2 run teleop_twist_keyboard teleop_twist_keyboard
+ros2 run teleop_twist_keyboard teleop_twist_keyboard --ros-args -p stamped:=true -p frame_id:=base_link -r /cmd_vel:=/diff_drive_controller/cmd_vel
 ```
 
 Expected:
@@ -68,12 +69,14 @@ Expected:
 ## 5. Verify Odometry and Joint States
 
 ```bash
+ros2 topic echo /diff_drive_controller/odom --once
 ros2 topic echo /odom --once
 ros2 topic echo /joint_states --once
 ```
 
 Expected:
-- `/odom` publishes valid pose/twist data while moving.
+- `/diff_drive_controller/odom` publishes valid pose/twist data while moving.
+- `/odom` mirrors controller odometry for compatibility.
 - `/joint_states` publishes wheel joint names and changing positions/velocities.
 
 ## 6. Verify TF Tree
@@ -93,5 +96,6 @@ Expected frame connectivity includes:
 Simulation is considered healthy when:
 - Robot spawns correctly.
 - `/cmd_vel` commands produce motion.
-- `/odom`, `/joint_states`, and `/tf` update correctly.
+- `/diff_drive_controller/cmd_vel` commands produce motion.
+- `/diff_drive_controller/odom`, `/odom`, `/joint_states`, and `/tf` update correctly.
 - RViz shows moving wheel links without missing transform errors.

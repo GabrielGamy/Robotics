@@ -1,0 +1,8 @@
+<launch>
+    <arg name="model"
+        default="$(find-pkg-share differential_drive_robot)/urdf/differential_drive_robot.urdf.xacro" />
+
+    <include file="$(find-pkg-share differential_drive_robot)/launch/display.launch.xml">
+        <arg name="model" value="$(var model)" />
+    </include>
+</launch>

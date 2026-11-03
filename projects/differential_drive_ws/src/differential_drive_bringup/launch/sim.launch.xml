@@ -1,0 +1,15 @@
+<launch>
+    <arg name="rviz" default="true" />
+    <arg name="world" default="$(find-pkg-share differential_drive_robot)/worlds/simple_world.sdf" />
+    <arg name="x" default="0.0" />
+    <arg name="y" default="0.0" />
+    <arg name="z" default="0.06" />
+
+    <include file="$(find-pkg-share differential_drive_robot)/launch/sim.launch.xml">
+        <arg name="rviz" value="$(var rviz)" />
+        <arg name="world" value="$(var world)" />
+        <arg name="x" value="$(var x)" />
+        <arg name="y" value="$(var y)" />
+        <arg name="z" value="$(var z)" />
+    </include>
+</launch>
