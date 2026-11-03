@@ -1,0 +1,51 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://wiki.ros.org/xacro">
+
+    <gazebo reference="base_link">
+        <visual>
+            <material>
+                <ambient>${color_base}</ambient>
+                <diffuse>${color_base}</diffuse>
+            </material>
+        </visual>
+    </gazebo>
+
+    <gazebo reference="left_wheel_link">
+        <visual>
+            <material>
+                <ambient>${color_wheel}</ambient>
+                <diffuse>${color_wheel}</diffuse>
+            </material>
+        </visual>
+        <mu1>1.0</mu1>
+        <mu2>1.0</mu2>
+        <kp>1e6</kp>
+        <kd>1.0</kd>
+    </gazebo>
+
+    <gazebo reference="right_wheel_link">
+        <visual>
+            <material>
+                <ambient>${color_wheel}</ambient>
+                <diffuse>${color_wheel}</diffuse>
+            </material>
+        </visual>
+        <mu1>1.0</mu1>
+        <mu2>1.0</mu2>
+        <kp>1e6</kp>
+        <kd>1.0</kd>
+    </gazebo>
+
+    <gazebo reference="caster_link">
+        <mu1>0.01</mu1>
+        <mu2>0.01</mu2>
+    </gazebo>
+
+    <gazebo>
+        <plugin filename="libgz_ros2_control-system.so"
+            name="gz_ros2_control::GazeboSimROS2ControlPlugin">
+            <parameters>$(find differential_drive_robot)/config/ros2_controllers.yaml</parameters>
+        </plugin>
+    </gazebo>
+
+</robot>

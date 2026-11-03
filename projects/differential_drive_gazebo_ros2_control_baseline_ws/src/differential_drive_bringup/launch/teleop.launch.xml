@@ -1,0 +1,11 @@
+<launch>
+    <arg name="cmd_vel_topic" default="/cmd_vel" />
+    <arg name="terminal_prefix" default="gnome-terminal --" />
+    <arg name="use_terminal_prefix" default="true" />
+
+    <include file="$(find-pkg-share differential_drive_robot)/launch/teleop.launch.xml">
+        <arg name="cmd_vel_topic" value="$(var cmd_vel_topic)" />
+        <arg name="terminal_prefix" value="$(var terminal_prefix)" />
+        <arg name="use_terminal_prefix" value="$(var use_terminal_prefix)" />
+    </include>
+</launch>

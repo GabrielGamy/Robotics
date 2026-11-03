@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<robot name="differential_drive_robot" xmlns:xacro="http://wiki.ros.org/xacro">
+
+    <xacro:include filename="$(find differential_drive_robot)/urdf/properties.xacro" />
+    <xacro:include filename="$(find differential_drive_robot)/urdf/materials.xacro" />
+    <xacro:include filename="$(find differential_drive_robot)/urdf/base.xacro" />
+    <xacro:include filename="$(find differential_drive_robot)/urdf/wheels.xacro" />
+    <xacro:include filename="$(find differential_drive_robot)/urdf/gazebo_plugins.xacro" />
+    <xacro:include filename="$(find differential_drive_robot)/urdf/ros2_control.xacro" />
+
+</robot>
