@@ -4,6 +4,7 @@
     <xacro:include filename="$(find differential_drive_robot)/urdf/properties.xacro" />
     <xacro:include filename="$(find differential_drive_robot)/urdf/materials.xacro" />
     <xacro:include filename="$(find differential_drive_robot)/urdf/base.xacro" />
+    <xacro:include filename="$(find differential_drive_robot)/urdf/sensors.xacro" />
     <xacro:include filename="$(find differential_drive_robot)/urdf/wheels.xacro" />
     <xacro:include filename="$(find differential_drive_robot)/urdf/gazebo_plugins.xacro" />
     <xacro:include filename="$(find differential_drive_robot)/urdf/ros2_control.xacro" />

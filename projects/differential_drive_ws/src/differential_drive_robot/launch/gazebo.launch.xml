@@ -46,8 +46,10 @@
         exec="parameter_bridge"
         name="ros_gz_bridge"
         output="screen"
-        args="/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock">
+        args="/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock
+              /imu@sensor_msgs/msg/Imu[gz.msgs.IMU">
         <param name="use_sim_time" value="true" />
+        <remap from="/imu" to="/imu/data" />
     </node>
 
     <node

@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://wiki.ros.org/xacro">
+    <!-- Sensor frames are centralized here for future IMU/LiDAR/camera additions. -->
+    <link name="imu_link">
+        <inertial>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <mass value="0.001" />
+            <inertia ixx="1e-7" ixy="0.0" ixz="0.0" iyy="1e-7" iyz="0.0" izz="1e-7" />
+        </inertial>
+    </link>
+
+    <joint name="base_link_to_imu_joint" type="fixed">
+        <parent link="base_link" />
+        <child link="imu_link" />
+        <origin xyz="0 0 0.09" rpy="0 0 0" />
+    </joint>
+
+    <gazebo reference="base_link_to_imu_joint">
+        <preserveFixedJoint>true</preserveFixedJoint>
+    </gazebo>
+</robot>
