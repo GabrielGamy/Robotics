@@ -103,6 +103,18 @@ Expected:
 - Publisher count is at least 1.
 - A message is received with non-empty `header.frame_id` and populated angular velocity / linear acceleration values.
 
+## 8. Verify LiDAR Bridge
+
+```bash
+ros2 topic info /scan
+ros2 topic echo /scan --once
+```
+
+Expected:
+- `/scan` type is `sensor_msgs/msg/LaserScan`.
+- Publisher count is at least 1.
+- A message is received with finite `range_min` / `range_max` and populated `ranges`.
+
 ## Pass Criteria
 
 Simulation is considered healthy when:
@@ -111,4 +123,5 @@ Simulation is considered healthy when:
 - `/diff_drive_controller/cmd_vel` commands produce motion.
 - `/diff_drive_controller/odom`, `/odom`, `/joint_states`, and `/tf` update correctly.
 - `/imu/data` publishes `sensor_msgs/msg/Imu` messages.
+- `/scan` publishes `sensor_msgs/msg/LaserScan` messages.
 - RViz shows moving wheel links without missing transform errors.
