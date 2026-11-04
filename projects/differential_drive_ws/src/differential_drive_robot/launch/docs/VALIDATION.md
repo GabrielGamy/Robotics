@@ -91,6 +91,18 @@ Expected frame connectivity includes:
 - `base_link -> left_wheel_link`
 - `base_link -> right_wheel_link`
 
+## 7. Verify IMU Bridge
+
+```bash
+ros2 topic info /imu/data
+ros2 topic echo /imu/data --once
+```
+
+Expected:
+- `/imu/data` type is `sensor_msgs/msg/Imu`.
+- Publisher count is at least 1.
+- A message is received with non-empty `header.frame_id` and populated angular velocity / linear acceleration values.
+
 ## Pass Criteria
 
 Simulation is considered healthy when:
@@ -98,4 +110,5 @@ Simulation is considered healthy when:
 - `/cmd_vel` commands produce motion.
 - `/diff_drive_controller/cmd_vel` commands produce motion.
 - `/diff_drive_controller/odom`, `/odom`, `/joint_states`, and `/tf` update correctly.
+- `/imu/data` publishes `sensor_msgs/msg/Imu` messages.
 - RViz shows moving wheel links without missing transform errors.
