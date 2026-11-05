@@ -2,6 +2,7 @@
 <robot name="differential_drive_robot" xmlns:xacro="http://wiki.ros.org/xacro">
 
     <xacro:arg name="lidar_profile" default="balanced" />
+    <xacro:property name="lidar_profile_value" value="$(arg lidar_profile)" />
 
     <xacro:include filename="$(find differential_drive_robot)/urdf/properties.xacro" />
     <xacro:include filename="$(find differential_drive_robot)/urdf/materials.xacro" />

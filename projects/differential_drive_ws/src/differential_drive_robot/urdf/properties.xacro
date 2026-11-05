@@ -24,7 +24,7 @@
     <xacro:property name="caster_inertia_iyy" value="0.0002" />
     <xacro:property name="caster_inertia_izz" value="0.0002" />
 
-    <xacro:property name="lidar_is_light" value="${lidar_profile == 'light'}" />
+    <xacro:property name="lidar_is_light" value="${lidar_profile_value == 'light'}" />
     <xacro:property name="lidar_update_rate" value="${lidar_is_light and 10 or 12}" />
     <xacro:property name="lidar_samples" value="${lidar_is_light and 360 or 720}" />
     <xacro:property name="lidar_min_angle" value="${lidar_is_light and -1.5708 or -2.35619}" />
