@@ -115,6 +115,28 @@ Expected:
 - Publisher count is at least 1.
 - A message is received with finite `range_min` / `range_max` and populated `ranges`.
 
+## 9. LiDAR Tuning Pass (Balanced Profile)
+
+Current tuned profile in simulation:
+- Horizontal FOV: 270 deg (`min_angle=-2.35619`, `max_angle=2.35619`)
+- Samples: `720`
+- Range: `0.15 m` to `8.0 m`
+- Update rate: `12 Hz`
+- Gaussian noise stddev: `0.01 m`
+
+Quick checks:
+
+```bash
+ros2 topic hz /scan
+ros2 topic echo /scan --once
+```
+
+Expected:
+- `/scan` frequency is around 12 Hz (typically about 10 to 12 Hz under normal simulator load).
+- `angle_min` / `angle_max` reflect a 270 deg scan.
+- `range_min` / `range_max` are `0.15` and `8.0`.
+- `ranges` values show small realistic jitter from noise, without NaN-only output.
+
 ## Pass Criteria
 
 Simulation is considered healthy when:
