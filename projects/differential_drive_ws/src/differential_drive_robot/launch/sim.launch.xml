@@ -14,6 +14,7 @@
     <arg name="x" default="0.0" />
     <arg name="y" default="0.0" />
     <arg name="z" default="0.06" />
+    <arg name="lidar_profile" default="balanced" />
 
     <include file="$(find-pkg-share differential_drive_robot)/launch/gazebo.launch.xml">
         <arg name="rviz" value="$(var rviz)" />
@@ -21,5 +22,6 @@
         <arg name="x" value="$(var x)" />
         <arg name="y" value="$(var y)" />
         <arg name="z" value="$(var z)" />
+        <arg name="lidar_profile" value="$(var lidar_profile)" />
     </include>
 </launch>

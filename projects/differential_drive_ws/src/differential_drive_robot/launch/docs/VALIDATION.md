@@ -137,6 +137,35 @@ Expected:
 - `range_min` / `range_max` are `0.15` and `8.0`.
 - `ranges` values show small realistic jitter from noise, without NaN-only output.
 
+## 10. LiDAR Profile Comparison (Balanced vs Light)
+
+Run balanced profile (default):
+
+```bash
+ros2 launch differential_drive_robot sim.launch.xml rviz:=false lidar_profile:=balanced
+```
+
+In another terminal:
+
+```bash
+source /opt/ros/jazzy/setup.bash
+cd /home/gabrielgamy/src/robotics/projects/differential_drive_ws
+source install/setup.bash
+ros2 topic hz /scan
+ros2 topic echo /scan --once
+```
+
+Then run light profile:
+
+```bash
+ros2 launch differential_drive_robot sim.launch.xml rviz:=false lidar_profile:=light
+```
+
+Expected profile deltas:
+- `balanced`: ~270 deg, 720 samples, 0.15 m to 8.0 m, target 12 Hz.
+- `light`: ~180 deg, 360 samples, 0.20 m to 6.0 m, target 10 Hz.
+- Light profile should reduce sensor cost while keeping stable `/scan` publication.
+
 ## Pass Criteria
 
 Simulation is considered healthy when:
