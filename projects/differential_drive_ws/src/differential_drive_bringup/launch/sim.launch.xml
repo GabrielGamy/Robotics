@@ -1,15 +1,22 @@
 <launch>
     <arg name="rviz" default="true" />
-    <arg name="world" default="$(find-pkg-share differential_drive_robot)/worlds/simple_world.sdf" />
+    <arg name="world_name" default="apartment" />
+    <arg name="world"
+        default="$(find-pkg-share differential_drive_robot)/worlds/$(var world_name)_world.sdf" />
     <arg name="x" default="0.0" />
     <arg name="y" default="0.0" />
     <arg name="z" default="0.06" />
+    <arg name="lidar_profile" default="balanced" />
+    <arg name="use_ekf" default="false" />
 
     <include file="$(find-pkg-share differential_drive_robot)/launch/sim.launch.xml">
         <arg name="rviz" value="$(var rviz)" />
+        <arg name="world_name" value="$(var world_name)" />
         <arg name="world" value="$(var world)" />
         <arg name="x" value="$(var x)" />
         <arg name="y" value="$(var y)" />
         <arg name="z" value="$(var z)" />
+        <arg name="lidar_profile" value="$(var lidar_profile)" />
+        <arg name="use_ekf" value="$(var use_ekf)" />
     </include>
 </launch>

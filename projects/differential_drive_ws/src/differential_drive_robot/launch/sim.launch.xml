@@ -19,6 +19,8 @@
     <arg name="y" default="0.0" />
     <arg name="z" default="0.06" />
     <arg name="lidar_profile" default="balanced" />
+    <arg name="use_ekf" default="false"
+        description="Set true to start robot_localization EKF" />
 
     <include file="$(find-pkg-share differential_drive_robot)/launch/gazebo.launch.xml">
         <arg name="rviz" value="$(var rviz)" />
@@ -28,4 +30,7 @@
         <arg name="z" value="$(var z)" />
         <arg name="lidar_profile" value="$(var lidar_profile)" />
     </include>
+
+    <include file="$(find-pkg-share differential_drive_robot)/launch/localization.launch.xml"
+        if="$(var use_ekf)" />
 </launch>
