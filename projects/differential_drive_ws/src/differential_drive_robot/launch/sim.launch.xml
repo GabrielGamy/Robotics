@@ -10,7 +10,11 @@
         -->
 
     <arg name="rviz" default="true" description="Set to false to skip RViz" />
-    <arg name="world" default="$(find-pkg-share differential_drive_robot)/worlds/simple_world.sdf" />
+    <arg name="world_name" default="apartment"
+        description="World preset: simple or apartment" />
+    <arg name="world"
+        default="$(find-pkg-share differential_drive_robot)/worlds/$(var world_name)_world.sdf"
+        description="Full world path override (optional)" />
     <arg name="x" default="0.0" />
     <arg name="y" default="0.0" />
     <arg name="z" default="0.06" />
