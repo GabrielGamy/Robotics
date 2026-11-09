@@ -8,7 +8,7 @@ slam_toolbox:
 
     # Set this to the base path used when saving with serialize_map.
     # Example: /home/user/.../maps/apartment_posegraph
-    map_file_name: /tmp/slam_toolbox_missing_map_file
+    map_file_name: /home/gabrielgamy/src/robotics/projects/differential_drive_ws/src/differential_drive_robot/maps/slam_posegraph
 
     debug_logging: false
     throttle_scans: 1

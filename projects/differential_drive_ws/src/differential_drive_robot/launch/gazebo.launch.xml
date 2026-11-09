@@ -15,11 +15,18 @@
         description="Gazebo built-in world name, or absolute path to a .sdf file" />
     <arg name="rviz" default="true"
         description="Set to false to skip RViz" />
+    <arg name="rviz_config"
+        default="$(find-pkg-share differential_drive_robot)/rviz/differential_drive_robot.rviz"
+        description="RViz config file to load" />
     <arg name="x" default="0.0" />
     <arg name="y" default="0.0" />
     <arg name="z" default="0.06" />
     <arg name="lidar_profile" default="balanced"
         description="LiDAR preset: balanced or light" />
+    <arg name="controller_manager_timeout" default="120"
+        description="Seconds to wait for /controller_manager services" />
+    <arg name="controller_switch_timeout" default="30.0"
+        description="Seconds to wait for controller activation switch" />
 
     <include file="$(find-pkg-share ros_gz_sim)/launch/gz_sim.launch.py">
         <arg name="gz_args" value="-r $(var world)" />
@@ -59,13 +66,11 @@
     <node
         pkg="controller_manager"
         exec="spawner"
-        args="joint_state_broadcaster --activate"
-        output="screen" />
-
-    <node
-        pkg="controller_manager"
-        exec="spawner"
-        args="diff_drive_controller --activate"
+        args="joint_state_broadcaster diff_drive_controller
+              --activate
+              --controller-manager /controller_manager
+              --controller-manager-timeout $(var controller_manager_timeout)
+              --switch-timeout $(var controller_switch_timeout)"
         output="screen" />
 
     <node
@@ -75,7 +80,24 @@
         args="/diff_drive_controller/odom /odom"
         output="screen" />
 
-    <node pkg="rviz2" exec="rviz2" output="screen" if="$(var rviz)">
+    <!-- Bridge Gazebo LiDAR frame name into the URDF TF tree for SLAM filters. -->
+    <node
+        pkg="tf2_ros"
+        exec="static_transform_publisher"
+        name="lidar_frame_bridge"
+        args="0.12 0.0 0.16 0.0 0.0 0.0 base_footprint differential_drive_robot/base_footprint/lidar_sensor"
+        output="screen" />
+
+    <!-- Bridge Gazebo IMU frame name into the URDF TF tree for EKF IMU fusion. -->
+    <node
+        pkg="tf2_ros"
+        exec="static_transform_publisher"
+        name="imu_frame_bridge"
+        args="0.0 0.0 0.0 0.0 0.0 0.0 base_footprint differential_drive_robot/base_footprint/imu_sensor"
+        output="screen" />
+
+    <node pkg="rviz2" exec="rviz2" output="screen" if="$(var rviz)"
+        args="-d $(var rviz_config)">
         <param name="use_sim_time" value="true" />
     </node>
 

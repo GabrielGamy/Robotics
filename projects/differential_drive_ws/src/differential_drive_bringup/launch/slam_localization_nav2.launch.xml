@@ -1,0 +1,42 @@
+<launch>
+    <arg name="rviz" default="true" />
+    <arg name="world_name" default="apartment" />
+    <arg name="world"
+        default="$(find-pkg-share differential_drive_robot)/worlds/$(var world_name)_world.sdf" />
+    <arg name="x" default="0.0" />
+    <arg name="y" default="0.0" />
+    <arg name="z" default="0.06" />
+    <arg name="lidar_profile" default="light" />
+
+    <arg name="map"
+        default="$(find-pkg-share differential_drive_robot)/maps/slam_map.yaml" />
+    <arg name="nav2_params_file"
+        default="/opt/ros/jazzy/share/nav2_bringup/params/nav2_params.yaml" />
+
+    <include file="$(find-pkg-share differential_drive_robot)/launch/sim.launch.xml">
+        <arg name="rviz" value="$(var rviz)" />
+        <arg name="world_name" value="$(var world_name)" />
+        <arg name="world" value="$(var world)" />
+        <arg name="x" value="$(var x)" />
+        <arg name="y" value="$(var y)" />
+        <arg name="z" value="$(var z)" />
+        <arg name="lidar_profile" value="$(var lidar_profile)" />
+        <arg name="use_ekf" value="true" />
+    </include>
+
+    <!-- Nav2 publishes /cmd_vel by default; relay to the controller command topic. -->
+    <node pkg="topic_tools"
+        exec="relay"
+        name="cmd_vel_relay"
+        args="/cmd_vel /diff_drive_controller/cmd_vel"
+        output="screen" />
+
+    <include file="$(find-pkg-share nav2_bringup)/launch/bringup_launch.py">
+        <arg name="slam" value="false" />
+        <arg name="map" value="$(var map)" />
+        <arg name="use_sim_time" value="true" />
+        <arg name="params_file" value="$(var nav2_params_file)" />
+        <arg name="autostart" value="true" />
+        <arg name="use_composition" value="false" />
+    </include>
+</launch>

@@ -7,7 +7,7 @@
     <arg name="y" default="0.0" />
     <arg name="z" default="0.06" />
     <arg name="lidar_profile" default="balanced" />
-    <arg name="use_ekf" default="false" />
+    <arg name="use_ekf" default="true" />
 
     <include file="$(find-pkg-share differential_drive_robot)/launch/sim.launch.xml">
         <arg name="rviz" value="$(var rviz)" />
