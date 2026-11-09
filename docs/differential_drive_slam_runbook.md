@@ -1,9 +1,23 @@
 # Differential Drive SLAM Runbook
 
-Command-first runbook for mapping and localization with ROS 2 Jazzy, Gazebo, and SLAM Toolbox.
+Command-first runbook for mapping, localization, and Nav2 navigation with ROS 2 Jazzy, Gazebo Harmonic, and SLAM Toolbox.
 
 - **Workspace:** `/home/gabrielgamy/src/robotics/projects/differential_drive_ws`
 - **ROS distribution:** Jazzy
+
+## Simulation and Map Preview
+
+The apartment world contains a bedroom and an open living/dining area. The table and chairs remain inside, and the SUV remains outside.
+
+### Gazebo Apartment
+
+![Differential-drive robot in the Gazebo apartment with bedroom furniture, a living area, and an SUV outside](../images/differential_drive_ws%202026-11-09%2002-43-49.png)
+
+### RViz Occupancy Map
+
+![Apartment occupancy map and differential-drive robot displayed in RViz](../images/differential_drive_ws%202026-11-09%2002-44-13.png)
+
+These screenshots illustrate the simulation and map visualization; they are not a substitute for the validation checks below. Regenerate the saved map and pose graph whenever the world's layout changes.
 
 ## Environment Setup
 

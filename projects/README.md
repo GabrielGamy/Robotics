@@ -8,18 +8,23 @@ This repository is organized as a multi-project workspace for ROS 2 robotics exp
 Robotics/
 ├── README.md
 ├── docs/
+├── images/
 ├── projects/
+│   ├── differential_drive_ws/
+│   ├── differential_drive_gazebo_baseline_ws/
+│   ├── differential_drive_gazebo_ros2_control_baseline_ws/
 │   └── toy_robot_ws/
-├── scripts/
-├── shared/
 └── .gitignore
 ```
 
-## Current project
+## Projects
 
-- [toy_robot_ws/](toy_robot_ws/) — active ROS 2 workspace for the toy robot
+- [differential_drive_ws/](differential_drive_ws/) — differential-drive robot with Gazebo simulation, ros2_control, SLAM, AMCL localization, and Nav2 navigation. See the [SLAM runbook and screenshots](../docs/differential_drive_slam_runbook.md).
+- [differential_drive_gazebo_baseline_ws/](differential_drive_gazebo_baseline_ws/) — Gazebo baseline workspace.
+- [differential_drive_gazebo_ros2_control_baseline_ws/](differential_drive_gazebo_ros2_control_baseline_ws/) — Gazebo/ros2_control baseline workspace.
+- [toy_robot_ws/](toy_robot_ws/) — ROS 2 workspace for the toy robot.
 
-## Quick start
+## Toy robot quick start
 
 ```bash
 cd ~/Robotics/projects/toy_robot_ws
