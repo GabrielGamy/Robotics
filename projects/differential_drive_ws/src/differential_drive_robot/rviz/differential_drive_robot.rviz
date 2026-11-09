@@ -144,6 +144,8 @@ Visualization Manager:
           Value: true
         caster_link:
           Value: true
+        differential_drive_robot/base_footprint/imu_sensor:
+          Value: true
         differential_drive_robot/base_footprint/lidar_sensor:
           Value: true
         imu_link:
@@ -178,6 +180,8 @@ Visualization Manager:
                   {}
                 right_wheel_link:
                   {}
+              differential_drive_robot/base_footprint/imu_sensor:
+                {}
               differential_drive_robot/base_footprint/lidar_sensor:
                 {}
       Update Interval: 0
@@ -228,7 +232,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz_default_plugins/Orbit
-      Distance: 16.451030731201172
+      Distance: 17.765005111694336
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -243,10 +247,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.8753988742828369
+      Pitch: 0.7503991723060608
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 6.270463466644287
+      Yaw: 3.1304593086242676
     Saved: ~
 Window Geometry:
   Displays:
@@ -264,5 +268,5 @@ Window Geometry:
   Views:
     collapsed: false
   Width: 1548
-  X: 0
-  Y: 75
+  X: 2049
+  Y: 107

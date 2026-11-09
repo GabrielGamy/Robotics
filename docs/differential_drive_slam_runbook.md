@@ -302,6 +302,76 @@ This workflow uses the occupancy map saved during mapping rather than the SLAM T
 
 Use this workflow when integrating the robot with the standard Nav2 localization stack.
 
+### 1. Launch Nav2 Localization
+
+```bash
+cd /home/gabrielgamy/src/robotics/projects/differential_drive_ws
+unset AMENT_PREFIX_PATH CMAKE_PREFIX_PATH COLCON_PREFIX_PATH LD_LIBRARY_PATH
+source /opt/ros/jazzy/setup.bash
+source install/setup.bash
+
+ros2 launch differential_drive_bringup \
+  slam_localization_nav2.launch.xml \
+  world_name:=apartment \
+  rviz:=true
+```
+
+Note: this launch seeds AMCL with a startup initial pose at `(x=0.0, y=0.0, yaw=0.0)`. The `map -> odom` transform becomes available after scans and odometry TF arrive; it is not immediate.
+If you spawn the robot somewhere else, set `2D Pose Estimate` in RViz to correct AMCL.
+
+### 2. (Optional) Correct the Initial Pose
+
+In RViz:
+
+1. Select `2D Pose Estimate`.
+2. Click approximately where the robot is located on the map.
+3. Drag the arrow in the direction the robot is facing.
+
+Use this when the robot is not spawned at `(0,0,0)` or if localization drifts after startup.
+
+If RViz `2D Pose Estimate` is not available, publish one initial pose from a terminal:
+
+```bash
+source /opt/ros/jazzy/setup.bash
+source /home/gabrielgamy/src/robotics/projects/differential_drive_ws/install/setup.bash
+
+ros2 topic pub --once /initialpose geometry_msgs/msg/PoseWithCovarianceStamped \
+  "{header: {frame_id: map}, pose: {pose: {position: {x: 0.0, y: 0.0, z: 0.0}, orientation: {w: 1.0}}}}"
+```
+
+### 3. Send a Navigation Goal
+
+In RViz:
+
+1. Select `2D Goal Pose` (or the Nav2 Goal tool if configured).
+2. Click the target location in free space on the map.
+3. Drag to set the goal heading.
+
+Nav2 uses native `geometry_msgs/msg/TwistStamped` commands throughout this chain:
+
+```text
+controller_server / behavior_server
+  -> /cmd_vel_nav -> velocity_smoother
+  -> /cmd_vel_smoothed -> collision_monitor
+  -> /diff_drive_controller/cmd_vel -> diff_drive_controller
+```
+
+There is no command conversion relay. Recovery behaviors also use stamped commands,
+and the velocity smoother timestamps its outputs at smoothing time.
+
+### 4. Expected Behavior
+
+- Global path appears in RViz.
+- The robot moves toward the goal while avoiding obstacles.
+- AMCL pose remains stable and follows motion.
+
+The launch combines upstream AMCL localization with the project's
+[minimal navigation launch](../projects/differential_drive_ws/src/differential_drive_bringup/launch/navigation_minimal.launch.xml).
+The XML launch starts and lifecycle-manages only the seven navigation nodes used
+here; route, waypoint-follower, and docking servers are intentionally excluded.
+Keep it alongside the robot-specific Nav2 parameters. The configured goal checker
+allows a position tolerance of 0.25 m, so the robot can stop short of the exact target.
+
 ---
 
 # Localization Validation
@@ -321,6 +391,31 @@ Then:
 ```bash
 ros2 param get /slam_toolbox mode
 ```
+
+For Nav2 occupancy-map localization:
+
+```bash
+ros2 node list
+```
+
+Verify that these nodes exist:
+
+- `/amcl`
+- `/map_server`
+- `/planner_server`
+- `/controller_server`
+- `/bt_navigator`
+- `/lifecycle_manager_localization`
+- `/lifecycle_manager_navigation`
+
+For Nav2 occupancy-map localization, verify AMCL and map server are active:
+
+```bash
+ros2 lifecycle get /amcl
+ros2 lifecycle get /map_server
+```
+
+Both should report `active [3]`.
 
 ## Verify the Map
 
@@ -364,6 +459,24 @@ Then use `2D Pose Estimate` in RViz.
 
 If no message arrives, investigate the RViz pose tool or `/initialpose` topic configuration.
 
+Then verify AMCL is active and subscribed:
+
+```bash
+ros2 lifecycle get /amcl
+ros2 topic info /initialpose -v
+```
+
+`/amcl` should be `active [3]`, and `/initialpose` should list one subscriber from AMCL.
+
+After sending `2D Pose Estimate`, confirm AMCL publishes pose updates:
+
+```bash
+ros2 topic echo /amcl_pose --once
+ros2 run tf2_ros tf2_echo map odom
+```
+
+If `/amcl_pose` and `map -> odom` do not update, relaunch from a clean terminal and re-send `2D Pose Estimate`.
+
 ## `/slam_toolbox` Node Is Missing
 
 Check:
@@ -386,9 +499,10 @@ If the transform exists but remains constant, move the robot inside the mapped a
 
 ## `Invalid frame ID "map"` During Startup
 
-A brief TF error during startup can occur before the localization or SLAM node begins publishing the `map` transform.
+A brief TF error can still appear during startup while Nav2 nodes initialize.
 
-If the transform becomes available shortly afterward, the initial message can generally be ignored.
+If this error persists and Nav2 lifecycle reports planner activation failure, AMCL has not produced `map -> odom` yet.
+Set a valid `2D Pose Estimate` and relaunch if needed.
 
 Verify with:
 
@@ -398,13 +512,17 @@ ros2 run tf2_ros tf2_echo map base_footprint
 
 ## Stale ROS/Gazebo Processes
 
-If the launch behaves inconsistently, stop stale processes:
+If the launch behaves inconsistently, first stop its launch terminal with `Ctrl+C`.
+Inspect remaining processes before stopping anything else:
 
 ```bash
-pkill -9 -f "ros2|gz sim|ros_gz|controller_manager|spawner|robot_state_publisher|ekf_node|slam_toolbox|teleop_twist_keyboard|rviz2" || true
+ps -eo pid,ppid,args | grep -E '[r]os2 launch|/opt/ros/jazzy/lib/|[g]z sim'
 ```
 
-Then start the stack again from a clean terminal.
+Send `SIGTERM` only to identified stale PIDs belonging to this stack. Use `SIGKILL`
+only for those specific PIDs if graceful termination fails. Broad `pkill -f`
+patterns can terminate unrelated processes and miss orphaned Nav2 executables.
+Verify that no old stack instances remain, then relaunch from a clean terminal.
 
 ## DDS Shared-Memory Lock Errors
 
@@ -428,11 +546,8 @@ Ctrl+C
 
 in the launch terminal.
 
-If Gazebo, ROS, or RViz processes remain stuck:
-
-```bash
-pkill -9 -f "gz sim|ros_gz_bridge|controller_manager|spawner|robot_state_publisher|ekf_node|slam_toolbox|teleop_twist_keyboard|rviz2" || true
-```
+If Gazebo, ROS, or RViz processes remain stuck, follow the targeted PID inspection
+and termination procedure in **Stale ROS/Gazebo Processes** above.
 
 Only clear DDS shared-memory files if related errors persist:
 

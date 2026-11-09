@@ -1,4 +1,5 @@
-<sdf version='1.10'>
+<?xml version="1.0"?>
+<sdf version="1.10">
   <world name='apartment_world'>
     <physics name='1ms' default='true' type='ode'>
       <max_step_size>0.001</max_step_size>
@@ -345,112 +346,10 @@
       </link>
       <self_collide>false</self_collide>
     </model>
-    <model name='partition_office_top'>
-      <static>true</static>
-      <pose>-2.2000000000000002 -0.45000000000000001 1 0 0 0</pose>
-      <link name='link'>
-        <collision name='collision'>
-          <geometry>
-            <box>
-              <size>0.10000000000000001 2.8999999999999999 2</size>
-            </box>
-          </geometry>
-          <surface>
-            <friction>
-              <ode />
-            </friction>
-            <bounce />
-            <contact />
-          </surface>
-        </collision>
-        <visual name='visual'>
-          <geometry>
-            <box>
-              <size>0.10000000000000001 2.8999999999999999 2</size>
-            </box>
-          </geometry>
-          <material>
-            <ambient>0.860000014 0.860000014 0.860000014 1</ambient>
-            <diffuse>0.860000014 0.860000014 0.860000014 1</diffuse>
-          </material>
-        </visual>
-        <pose>0 0 0 0 0 0</pose>
-        <inertial>
-          <pose>0 0 0 0 0 0</pose>
-          <mass>1</mass>
-          <inertia>
-            <ixx>1</ixx>
-            <ixy>0</ixy>
-            <ixz>0</ixz>
-            <iyy>1</iyy>
-            <iyz>0</iyz>
-            <izz>1</izz>
-          </inertia>
-        </inertial>
-        <enable_wind>false</enable_wind>
-      </link>
-      <self_collide>false</self_collide>
-    </model>
-    <model name='partition_office_bottom'>
-      <static>true</static>
-      <pose>-2.2000000000000002 -3.4500000000000002 1 0 0 0</pose>
-      <link name='link'>
-        <collision name='collision'>
-          <geometry>
-            <box>
-              <size>0.10000000000000001 1.1000000000000001 2</size>
-            </box>
-          </geometry>
-          <surface>
-            <friction>
-              <ode />
-            </friction>
-            <bounce />
-            <contact />
-          </surface>
-        </collision>
-        <visual name='visual'>
-          <geometry>
-            <box>
-              <size>0.10000000000000001 1.1000000000000001 2</size>
-            </box>
-          </geometry>
-          <material>
-            <ambient>0.860000014 0.860000014 0.860000014 1</ambient>
-            <diffuse>0.860000014 0.860000014 0.860000014 1</diffuse>
-          </material>
-        </visual>
-        <pose>0 0 0 0 0 0</pose>
-        <inertial>
-          <pose>0 0 0 0 0 0</pose>
-          <mass>1</mass>
-          <inertia>
-            <ixx>1</ixx>
-            <ixy>0</ixy>
-            <ixz>0</ixz>
-            <iyy>1</iyy>
-            <iyz>0</iyz>
-            <izz>1</izz>
-          </inertia>
-        </inertial>
-        <enable_wind>false</enable_wind>
-      </link>
-      <self_collide>false</self_collide>
-    </model>
     <include>
       <uri>file:///home/gabrielgamy/.gz/fuel/fuel.gazebosim.org/openrobotics/models/bed/1</uri>
       <name>bedroom_bed</name>
       <pose>3.2000000000000002 2.7000000000000002 0 0 0 1.5708000000000006</pose>
-    </include>
-    <include>
-      <uri>file:///home/gabrielgamy/.gz/fuel/fuel.gazebosim.org/openrobotics/models/office desk/1</uri>
-      <name>office_desk</name>
-      <pose>-3.5 -0.29999999999999999 0 0 0 1.5708000000000006</pose>
-    </include>
-    <include>
-      <uri>file:///home/gabrielgamy/.gz/fuel/fuel.gazebosim.org/openrobotics/models/office chair/1</uri>
-      <name>office_chair</name>
-      <pose>-3.2000000000000002 -1.2 0 0 0 0</pose>
     </include>
     <include>
       <uri>file:///home/gabrielgamy/.gz/fuel/fuel.gazebosim.org/openrobotics/models/coffeetable/2</uri>
