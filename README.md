@@ -10,6 +10,8 @@ This repository is organized as a multi-project workspace:
 Robotics/
 ├── README.md
 ├── docs/
+│   ├── differential_drive_ws/
+│   └── toy_robot_ws/
 ├── images/
 ├── projects/
 │   ├── differential_drive_ws/
@@ -32,7 +34,7 @@ Each ROS workspace keeps its own source packages and generated build, install, a
 - The apartment world contains a bedroom and open living/dining area, with an SUV outside.
 - Simulation currently uses Gazebo's ros2_control backend; physical hardware integration is not yet implemented.
 
-See the [Differential Drive SLAM Runbook](docs/differential_drive_slam_runbook.md) for environment setup, mapping, map saving, localization, and navigation commands.
+See the [Differential Drive SLAM Runbook](docs/differential_drive_ws/differential_drive_slam_runbook.md) for environment setup, mapping, map saving, localization, and navigation commands.
 
 #### Gazebo apartment simulation
 
@@ -80,7 +82,8 @@ ros2 launch toy_robot_description display.launch.xml
 
 ## Documentation
 
-- [Differential Drive SLAM Runbook](docs/differential_drive_slam_runbook.md) — differential-drive simulation, mapping, localization, and navigation
+- [Differential Drive SLAM Runbook](docs/differential_drive_ws/differential_drive_slam_runbook.md) — differential-drive simulation, mapping, localization, and navigation
+- [Toy Robot Architecture](docs/toy_robot_ws/toy_robots-architecture.odt) — architecture document
 - [projects/toy_robot_ws/docs/index.md](projects/toy_robot_ws/docs/index.md) — documentation entry point
 - [projects/toy_robot_ws/docs/development.md](projects/toy_robot_ws/docs/development.md) — build, launch, and test workflow
 - [projects/toy_robot_ws/docs/architecture.md](projects/toy_robot_ws/docs/architecture.md) — runtime architecture and data flow
