@@ -15,7 +15,7 @@ diff_drive_controller:
     right_wheel_names: ["right_wheel_joint"]
 
     wheel_separation: 0.28
-    wheel_radius: 0.06
+    wheel_radius: 0.065
 
     odom_frame_id: odom
     base_frame_id: base_footprint

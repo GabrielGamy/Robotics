@@ -60,7 +60,9 @@
         output="screen"
         args="/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock
               /imu@sensor_msgs/msg/Imu[gz.msgs.IMU
-              /scan@sensor_msgs/msg/LaserScan[gz.msgs.LaserScan">
+              /scan@sensor_msgs/msg/LaserScan[gz.msgs.LaserScan
+              /camera/image_raw@sensor_msgs/msg/Image[gz.msgs.Image
+              /camera/camera_info@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo">
         <param name="use_sim_time" value="true" />
         <remap from="/imu" to="/imu/data" />
     </node>
@@ -99,7 +101,8 @@
         pkg="tf2_ros"
         exec="static_transform_publisher"
         name="lidar_frame_bridge"
-        args="0.12 0.0 0.16 0.0 0.0 0.0 base_footprint differential_drive_robot/base_footprint/lidar_sensor"
+        args="--x 0 --y 0 --z 0 --roll 0 --pitch 0 --yaw 0
+              --frame-id lidar_link --child-frame-id differential_drive_robot/base_footprint/lidar_sensor"
         output="screen" />
 
     <!-- Bridge Gazebo IMU frame name into the URDF TF tree for EKF IMU fusion. -->
@@ -107,7 +110,8 @@
         pkg="tf2_ros"
         exec="static_transform_publisher"
         name="imu_frame_bridge"
-        args="0.0 0.0 0.0 0.0 0.0 0.0 base_footprint differential_drive_robot/base_footprint/imu_sensor"
+        args="--x 0 --y 0 --z 0 --roll 0 --pitch 0 --yaw 0
+              --frame-id imu_link --child-frame-id differential_drive_robot/imu_link/imu_sensor"
         output="screen" />
 
     <node pkg="rviz2" exec="rviz2" output="screen" if="$(var rviz)"

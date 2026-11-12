@@ -4,15 +4,19 @@
 
     <link name="base_link">
         <visual>
-            <origin xyz="0 0 0.05" rpy="0 0 0" />
+            <origin xyz="${base_geometry_x} 0 ${base_geometry_z}" rpy="0 0 0" />
             <geometry>
                 <box size="${base_length} ${base_width} ${base_height}" />
             </geometry>
-            <material name="blue" />
+            <material name="light_gray" />
         </visual>
 
+        <xacro:jetson_visuals />
+        <xacro:lidar_mount_visuals />
+        <xacro:camera_visuals />
+
         <collision>
-            <origin xyz="0 0 0.05" rpy="0 0 0" />
+            <origin xyz="${base_geometry_x} 0 ${base_geometry_z}" rpy="0 0 0" />
             <geometry>
                 <box size="${base_length} ${base_width} ${base_height}" />
             </geometry>
@@ -30,6 +34,6 @@
     <joint name="base_footprint_to_base_link_joint" type="fixed">
         <parent link="base_footprint" />
         <child link="base_link" />
-        <origin xyz="0 0 0.05" rpy="0 0 0" />
+        <origin xyz="0 0 ${wheel_radius}" rpy="0 0 0" />
     </joint>
 </robot>

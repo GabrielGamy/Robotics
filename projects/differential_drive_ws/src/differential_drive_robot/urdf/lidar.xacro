@@ -1,0 +1,79 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://wiki.ros.org/xacro">
+    <xacro:macro name="lidar_support" params="name position_x position_y">
+        <xacro:property name="support_bottom" value="${base_geometry_z + base_height/2}" />
+        <xacro:property name="support_top" value="${lidar_platform_top_z - lidar_platform_height}" />
+        <visual name="lidar_support_${name}">
+            <origin xyz="${position_x} ${position_y} ${(support_bottom + support_top)/2}"
+                rpy="0 0 0" />
+            <geometry>
+                <cylinder radius="0.004" length="${support_top - support_bottom}" />
+            </geometry>
+            <material name="gray" />
+        </visual>
+    </xacro:macro>
+
+    <xacro:macro name="lidar_mount_visuals" params="">
+        <xacro:lidar_support name="front_left"
+            position_x="${lidar_mount_x + lidar_platform_length/2 - 0.010}"
+            position_y="${lidar_platform_width/2 - 0.010}" />
+        <xacro:lidar_support name="front_right"
+            position_x="${lidar_mount_x + lidar_platform_length/2 - 0.010}"
+            position_y="${-lidar_platform_width/2 + 0.010}" />
+        <xacro:lidar_support name="rear_left"
+            position_x="${lidar_mount_x - lidar_platform_length/2 + 0.010}"
+            position_y="${lidar_platform_width/2 - 0.010}" />
+        <xacro:lidar_support name="rear_right"
+            position_x="${lidar_mount_x - lidar_platform_length/2 + 0.010}"
+            position_y="${-lidar_platform_width/2 + 0.010}" />
+
+        <visual name="lidar_platform">
+            <origin xyz="${lidar_mount_x} 0 ${lidar_platform_top_z - lidar_platform_height/2}"
+                rpy="0 0 0" />
+            <geometry>
+                <box
+                    size="${lidar_platform_length} ${lidar_platform_width} ${lidar_platform_height}" />
+            </geometry>
+            <material name="gray" />
+        </visual>
+    </xacro:macro>
+
+    <xacro:macro name="lidar_housing_visuals" params="">
+        <visual name="lidar_lower_body">
+            <origin xyz="0 0 ${-(lidar_body_depth + lidar_window_height/2)/2}" rpy="0 0 0" />
+            <geometry>
+                <box
+                    size="${2*lidar_body_radius} ${2*lidar_body_radius} ${lidar_body_depth - lidar_window_height/2}" />
+            </geometry>
+            <material name="black" />
+        </visual>
+
+        <visual name="lidar_scan_window">
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <geometry>
+                <cylinder radius="${lidar_body_radius - 0.004}" length="${lidar_window_height}" />
+            </geometry>
+            <material name="lidar_window">
+                <color rgba="0.12 0.18 0.20 0.5" />
+            </material>
+        </visual>
+
+        <visual name="lidar_trim_ring">
+            <origin xyz="0 0 ${lidar_window_height/2 + 0.001}" rpy="0 0 0" />
+            <geometry>
+                <cylinder radius="${lidar_body_radius + 0.001}" length="0.002" />
+            </geometry>
+            <material name="lidar_accent">
+                <color rgba="0.75 0.08 0.05 1.0" />
+            </material>
+        </visual>
+
+        <visual name="lidar_top_cap">
+            <origin xyz="0 0 ${lidar_window_height/2 + 0.008}" rpy="0 0 0" />
+            <geometry>
+                <cylinder radius="${lidar_body_radius}" length="0.012" />
+            </geometry>
+            <material name="black" />
+        </visual>
+    </xacro:macro>
+</robot>

@@ -1,9 +1,13 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://wiki.ros.org/xacro">
-    <xacro:property name="color_base" value="0.2 0.4 0.8 1.0" />
+    <xacro:property name="color_base" value="0.78 0.80 0.82 1.0" />
     <xacro:property name="color_wheel" value="0.1 0.1 0.1 1.0" />
 
     <material name="blue">
+        <color rgba="0.2 0.4 0.8 1.0" />
+    </material>
+
+    <material name="light_gray">
         <color rgba="${color_base}" />
     </material>
 

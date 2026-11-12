@@ -1,12 +1,61 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://wiki.ros.org/xacro">
-    <xacro:property name="wheel_radius" value="0.06" />
+    <xacro:property name="simulation_scale" value="2.0" />
+
+    <xacro:property name="wheel_radius" value="${0.0325 * simulation_scale}" />
     <xacro:property name="wheel_width" value="0.04" />
     <xacro:property name="wheel_separation" value="0.28" />
-    <xacro:property name="base_length" value="0.40" />
-    <xacro:property name="base_width" value="0.25" />
-    <xacro:property name="base_height" value="0.08" />
+
+    <xacro:property name="base_length" value="${0.165 * simulation_scale}" />
+    <xacro:property name="base_width" value="${0.120 * simulation_scale}" />
+    <xacro:property name="base_height" value="${0.068 * simulation_scale}" />
+    <xacro:property name="base_geometry_x" value="0.015" />
+    <xacro:property name="base_geometry_z" value="0.052" />
+
+    <xacro:property name="jetson_length" value="${0.100 * simulation_scale}" />
+    <xacro:property name="jetson_width" value="${0.079 * simulation_scale}" />
+    <xacro:property name="jetson_standoff_height" value="0.008" />
+    <xacro:property name="jetson_board_height" value="0.004" />
+    <xacro:property name="jetson_heatsink_height" value="0.026" />
+    <xacro:property name="jetson_fan_height" value="0.008" />
+    <xacro:property name="jetson_height"
+        value="${jetson_standoff_height + jetson_board_height + jetson_heatsink_height + jetson_fan_height}" />
+
+    <xacro:property name="lidar_mount_x" value="0.12" />
+    <xacro:property name="lidar_platform_length" value="0.090" />
+    <xacro:property name="lidar_platform_width" value="0.200" />
+    <xacro:property name="lidar_platform_height" value="0.004" />
+    <xacro:property name="lidar_platform_clearance" value="0.014" />
+    <xacro:property name="lidar_body_radius" value="0.038" />
+    <xacro:property name="lidar_body_depth" value="0.032" />
+    <xacro:property name="lidar_window_height" value="0.012" />
+    <xacro:property name="lidar_platform_top_z"
+        value="${base_geometry_z + base_height/2 + jetson_height + lidar_platform_clearance + lidar_platform_height}" />
+    <xacro:property name="lidar_mount_z" value="${lidar_platform_top_z + lidar_body_depth}" />
+
+    <xacro:property name="camera_body_width" value="0.060" />
+    <xacro:property name="camera_body_height" value="0.040" />
+    <xacro:property name="camera_mount_depth" value="0.004" />
+    <xacro:property name="camera_body_depth" value="0.012" />
+    <xacro:property name="camera_lens_radius" value="0.012" />
+    <xacro:property name="camera_lens_depth" value="0.008" />
+    <xacro:property name="camera_mount_x" value="${base_geometry_x + base_length/2}" />
+    <xacro:property name="camera_mount_z" value="${base_geometry_z}" />
+
+    <xacro:property name="camera_sensor_x"
+        value="${camera_mount_x + camera_mount_depth + camera_body_depth + camera_lens_depth + 0.002}" />
+    <xacro:property name="camera_image_width" value="640" />
+    <xacro:property name="camera_image_height" value="480" />
+    <xacro:property name="camera_update_rate" value="10" />
+    <xacro:property name="camera_horizontal_fov" value="${pi/3}" />
+
     <xacro:property name="caster_radius" value="0.03" />
+    <xacro:property name="caster_visual_radius" value="0.020" />
+    <xacro:property name="caster_visual_width" value="0.016" />
+    <xacro:property name="caster_visual_axle_z" value="${caster_visual_radius - caster_radius}" />
+    <xacro:property name="caster_mount_z"
+        value="${base_geometry_z - base_height/2 - caster_radius + wheel_radius}" />
+    <xacro:property name="caster_fork_top_z" value="${caster_mount_z - 0.004}" />
 
     <xacro:property name="base_mass" value="1.5" />
     <xacro:property name="wheel_mass" value="0.4" />

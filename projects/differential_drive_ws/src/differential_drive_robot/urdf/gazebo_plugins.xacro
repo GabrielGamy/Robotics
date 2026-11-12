@@ -96,7 +96,7 @@
         <sensor name="lidar_sensor" type="gpu_lidar">
             <always_on>true</always_on>
             <visualize>true</visualize>
-            <pose>0.12 0 0.11 0 0 0</pose>
+            <pose>${lidar_mount_x} 0 ${lidar_mount_z} 0 0 0</pose>
             <update_rate>${lidar_update_rate}</update_rate>
             <topic>/scan</topic>
             <lidar>
@@ -119,6 +119,29 @@
                     <stddev>${lidar_noise_stddev}</stddev>
                 </noise>
             </lidar>
+        </sensor>
+    </gazebo>
+
+    <gazebo reference="base_link">
+        <sensor name="camera_sensor" type="camera">
+            <always_on>true</always_on>
+            <update_rate>${camera_update_rate}</update_rate>
+            <pose>${camera_sensor_x} 0 ${camera_mount_z} 0 0 0</pose>
+            <topic>/camera/image_raw</topic>
+            <camera>
+                <optical_frame_id>camera_optical_frame</optical_frame_id>
+                <camera_info_topic>/camera/camera_info</camera_info_topic>
+                <horizontal_fov>${camera_horizontal_fov}</horizontal_fov>
+                <image>
+                    <width>${camera_image_width}</width>
+                    <height>${camera_image_height}</height>
+                    <format>R8G8B8</format>
+                </image>
+                <clip>
+                    <near>0.02</near>
+                    <far>10.0</far>
+                </clip>
+            </camera>
         </sensor>
     </gazebo>
 

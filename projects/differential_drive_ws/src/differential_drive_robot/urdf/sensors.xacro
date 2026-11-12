@@ -16,6 +16,8 @@
     </joint>
 
     <link name="lidar_link">
+        <xacro:lidar_housing_visuals />
+
         <inertial>
             <origin xyz="0 0 0" rpy="0 0 0" />
             <mass value="0.01" />
@@ -26,7 +28,7 @@
     <joint name="base_link_to_lidar_joint" type="fixed">
         <parent link="base_link" />
         <child link="lidar_link" />
-        <origin xyz="0.12 0 0.11" rpy="0 0 0" />
+        <origin xyz="${lidar_mount_x} 0 ${lidar_mount_z}" rpy="0 0 0" />
     </joint>
 
     <gazebo reference="base_link_to_imu_joint">

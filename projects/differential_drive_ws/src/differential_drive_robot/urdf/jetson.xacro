@@ -1,0 +1,95 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://wiki.ros.org/xacro">
+    <xacro:macro name="jetson_standoff" params="name x y">
+        <visual name="jetson_standoff_${name}">
+            <origin
+                xyz="${base_geometry_x + x} ${y} ${base_geometry_z + base_height/2 + jetson_standoff_height/2}"
+                rpy="0 0 0" />
+            <geometry>
+                <cylinder radius="0.003" length="${jetson_standoff_height}" />
+            </geometry>
+            <material name="gray" />
+        </visual>
+    </xacro:macro>
+
+    <xacro:macro name="jetson_visuals" params="">
+        <xacro:property name="board_bottom"
+            value="${base_geometry_z + base_height/2 + jetson_standoff_height}" />
+        <xacro:property name="board_top" value="${board_bottom + jetson_board_height}" />
+        <xacro:property name="heatsink_top" value="${board_top + jetson_heatsink_height}" />
+
+        <xacro:jetson_standoff name="front_left"
+            x="${jetson_length/2 - 0.012}" y="${jetson_width/2 - 0.012}" />
+        <xacro:jetson_standoff name="front_right"
+            x="${jetson_length/2 - 0.012}" y="${-jetson_width/2 + 0.012}" />
+        <xacro:jetson_standoff name="rear_left"
+            x="${-jetson_length/2 + 0.012}" y="${jetson_width/2 - 0.012}" />
+        <xacro:jetson_standoff name="rear_right"
+            x="${-jetson_length/2 + 0.012}" y="${-jetson_width/2 + 0.012}" />
+
+        <visual name="jetson_board">
+            <origin xyz="${base_geometry_x} 0 ${board_bottom + jetson_board_height/2}"
+                rpy="0 0 0" />
+            <geometry>
+                <box size="${jetson_length} ${jetson_width} ${jetson_board_height}" />
+            </geometry>
+            <material name="jetson_pcb">
+                <color rgba="0.06 0.36 0.18 1.0" />
+            </material>
+        </visual>
+
+        <visual name="jetson_heatsink">
+            <origin xyz="${base_geometry_x} 0 ${board_top + jetson_heatsink_height/2}"
+                rpy="0 0 0" />
+            <geometry>
+                <box size="0.084 0.084 ${jetson_heatsink_height}" />
+            </geometry>
+            <material name="black" />
+        </visual>
+
+        <visual name="jetson_fan_housing">
+            <origin xyz="${base_geometry_x} 0 ${heatsink_top + (jetson_fan_height - 0.003)/2}"
+                rpy="0 0 0" />
+            <geometry>
+                <cylinder radius="0.036" length="${jetson_fan_height - 0.003}" />
+            </geometry>
+            <material name="gray" />
+        </visual>
+
+        <visual name="jetson_fan_rotor">
+            <origin xyz="${base_geometry_x} 0 ${heatsink_top + jetson_fan_height - 0.002}"
+                rpy="0 0 0" />
+            <geometry>
+                <cylinder radius="0.031" length="0.002" />
+            </geometry>
+            <material name="black" />
+        </visual>
+
+        <visual name="jetson_fan_hub">
+            <origin xyz="${base_geometry_x} 0 ${heatsink_top + jetson_fan_height - 0.0005}"
+                rpy="0 0 0" />
+            <geometry>
+                <cylinder radius="0.007" length="0.001" />
+            </geometry>
+            <material name="gray" />
+        </visual>
+
+        <visual name="jetson_connector_left">
+            <origin xyz="${base_geometry_x + jetson_length/2 - 0.010} 0.040 ${board_top + 0.009}"
+                rpy="0 0 0" />
+            <geometry>
+                <box size="0.020 0.030 0.018" />
+            </geometry>
+            <material name="gray" />
+        </visual>
+
+        <visual name="jetson_connector_right">
+            <origin xyz="${base_geometry_x + jetson_length/2 - 0.010} -0.040 ${board_top + 0.009}"
+                rpy="0 0 0" />
+            <geometry>
+                <box size="0.020 0.030 0.018" />
+            </geometry>
+            <material name="gray" />
+        </visual>
+    </xacro:macro>
+</robot>
