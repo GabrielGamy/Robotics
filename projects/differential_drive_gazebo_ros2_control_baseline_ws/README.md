@@ -2,6 +2,14 @@
 
 Known-good baseline workspace for differential drive simulation using Gazebo + ros2_control.
 
+## Table of Contents
+
+- [Purpose](#purpose)
+- [Source Snapshot](#source-snapshot)
+- [Build](#build)
+- [Run](#run)
+- [Notes](#notes)
+
 ## Purpose
 
 - Preserve a stable, reproducible simulation reference before real hardware migration work.

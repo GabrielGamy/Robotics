@@ -7,6 +7,15 @@ This workspace contains four ROS 2 packages:
 3. toy_robot: behavior/control stack with perception simulation, state machine, TF transform helpers, Nav2 actions, and RViz debug markers.
 4. toy_robot_bringup: high-level launch orchestration for simulation, SLAM, and navigation.
 
+## Table of Contents
+
+- [Quick Start](#quick-start)
+- [Detailed Documentation](#detailed-documentation)
+- [URDF Documentation](#urdf-documentation)
+- [Package Structure](#package-structure)
+- [Core Runtime Files](#core-runtime-files)
+- [Workspace Structure](#workspace-structure)
+
 ## Quick Start
 
 Build all packages, source, and launch the runtime behavior stack:

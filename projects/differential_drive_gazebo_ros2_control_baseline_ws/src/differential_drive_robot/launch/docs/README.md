@@ -2,6 +2,12 @@
 
 This folder contains runtime entry points for visualization, simulation, and teleoperation.
 
+## Table of Contents
+
+- [Files](#files)
+- [Common Commands](#common-commands)
+- [Key Arguments](#key-arguments)
+
 ## Files
 
 - `display.launch.xml`

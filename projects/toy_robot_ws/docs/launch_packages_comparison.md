@@ -1,5 +1,18 @@
 # Launch Files Comparison (toy_robot / toy_robot_description / toy_robot_bringup)
 
+## Table of Contents
+
+- [Application Package: `robot.launch.xml`](#application-package-robotlaunchxml)
+- [Description Package: `display.launch.xml`](#description-package-displaylaunchxml)
+- [Description Package: `gazebo.launch.xml`](#description-package-gazebolaunchxml)
+- [Bringup Package: `simulation.launch.xml`](#bringup-package-simulationlaunchxml)
+- [Bringup Package: `slam.launch.xml`](#bringup-package-slamlaunchxml)
+- [Bringup Package: `navigation.launch.xml`](#bringup-package-navigationlaunchxml)
+- [About `display.launch.xml`](#about-displaylaunchxml)
+- [Recommended Architecture (Standard Practice)](#recommended-architecture-standard-practice)
+- [Launch Selection Matrix (6 Common Cases)](#launch-selection-matrix-6-common-cases)
+  - [Notes](#notes)
+
 ## Application Package: `robot.launch.xml`
 
 - **Role**: launch the robot business-logic nodes (brain, perception, manipulation).

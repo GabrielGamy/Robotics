@@ -1,6 +1,20 @@
 # Robotics
 
-ROS 2 robotics projects and experiments.
+ROS 2 robotics projects, embedded firmware, and experiments.
+
+## Table of Contents
+
+- [Repository layout](#repository-layout)
+- [Projects](#projects)
+  - [Differential-drive robot](#differential-drive-robot)
+    - [Planned physical robot](#planned-physical-robot)
+    - [Gazebo apartment simulation](#gazebo-apartment-simulation)
+    - [RViz map visualization](#rviz-map-visualization)
+  - [Differential-drive ESP32 firmware](#differential-drive-esp32-firmware)
+  - [Toy robot](#toy-robot)
+- [Toy Robot Quick Start](#toy-robot-quick-start)
+- [Requirements](#requirements)
+- [Documentation](#documentation)
 
 ## Repository layout
 
@@ -14,6 +28,7 @@ Robotics/
 │   └── toy_robot_ws/
 ├── images/
 ├── projects/
+│   ├── differential_drive_esp32/
 │   ├── differential_drive_ws/
 │   ├── differential_drive_gazebo_baseline_ws/
 │   ├── differential_drive_gazebo_ros2_control_baseline_ws/
@@ -21,7 +36,7 @@ Robotics/
 └── .gitignore
 ```
 
-Each ROS workspace keeps its own source packages and generated build, install, and log directories.
+Each ROS workspace keeps its own source packages and generated build, install, and log directories. ESP32 firmware is maintained separately as a PlatformIO project.
 
 ## Projects
 
@@ -36,6 +51,14 @@ Each ROS workspace keeps its own source packages and generated build, install, a
 
 See the [Differential Drive SLAM Runbook](docs/differential_drive_ws/differential_drive_slam_runbook.md) for environment setup, mapping, map saving, localization, and navigation commands.
 
+#### Planned physical robot
+
+![Differential-drive robot hardware concept](images/differential_drive_robot.png)
+
+Concept illustration; dimensions and component placement are provisional, not a validated assembly. The planned robot pairs a Jetson Orin Nano Super running ROS 2 with an ESP32 for low-level I/O and a Cytron MDD10A motor driver.
+
+See the [hardware plan](docs/differential_drive_ws/HARDWARE.md) for components, power, and physical layout, and the [ESP32 + MDD10A hardware guide](docs/differential_drive_ws/ESP32_MDD10A_HARDWARE_GUIDE.md) for USB/serial bring-up and the proposed wiring.
+
 #### Gazebo apartment simulation
 
 ![Differential-drive robot in the Gazebo apartment with a bedroom, living area, and SUV outside](images/differential_drive_ws%202026-11-09%2002-43-49.png)
@@ -43,6 +66,15 @@ See the [Differential Drive SLAM Runbook](docs/differential_drive_ws/differentia
 #### RViz map visualization
 
 ![RViz showing the apartment occupancy map and differential-drive robot](images/differential_drive_ws%202026-11-09%2002-44-13.png)
+
+### Differential-drive ESP32 firmware
+
+[projects/differential_drive_esp32/](projects/differential_drive_esp32/) — PlatformIO project for the physical differential-drive robot's ESP32-WROOM-32E board, using the Arduino framework and the `esp32dev` environment.
+
+- Current firmware is a USB/serial bring-up test that prints a startup message and a status message every 10 seconds at 115200 baud.
+- Motor control, encoder acquisition, IMU integration, and the ROS 2 hardware interface are not yet implemented.
+
+See the [ESP32 + MDD10A hardware guide](docs/differential_drive_ws/ESP32_MDD10A_HARDWARE_GUIDE.md) for the development workflow and low-level control plan.
 
 ### Toy robot
 
@@ -79,10 +111,13 @@ ros2 launch toy_robot_description display.launch.xml
 - Gazebo Harmonic, ros_gz, ros2_control, gz_ros2_control, robot_localization, SLAM Toolbox, and Nav2 for the differential-drive workspace
 - xacro, robot_state_publisher, joint_state_publisher_gui, rviz2
 - nav2 (for the full toy_robot launch flow)
+- PlatformIO with the Espressif32 platform and Arduino framework for the ESP32 firmware project; ROS 2 is not required to build this firmware
 
 ## Documentation
 
 - [Differential Drive SLAM Runbook](docs/differential_drive_ws/differential_drive_slam_runbook.md) — differential-drive simulation, mapping, localization, and navigation
+- [Differential Drive Hardware Plan](docs/differential_drive_ws/HARDWARE.md) — planned components, power, physical layout, and bring-up order
+- [ESP32 + MDD10A Hardware Guide](docs/differential_drive_ws/ESP32_MDD10A_HARDWARE_GUIDE.md) — ESP32 USB/serial bring-up, firmware workflow, and proposed low-level wiring
 - [Toy Robot Architecture](docs/toy_robot_ws/toy_robots-architecture.odt) — architecture document
 - [projects/toy_robot_ws/docs/index.md](projects/toy_robot_ws/docs/index.md) — documentation entry point
 - [projects/toy_robot_ws/docs/development.md](projects/toy_robot_ws/docs/development.md) — build, launch, and test workflow

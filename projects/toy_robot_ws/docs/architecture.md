@@ -2,6 +2,19 @@
 
 This document explains how the toy robot package is structured and why each component exists.
 
+## Table of Contents
+
+- [Design Principles](#design-principles)
+- [Main Components](#main-components)
+  - [brain_node](#brain_node)
+  - [behavior controller](#behavior-controller)
+  - [TF transformer](#tf-transformer)
+  - [visualization module](#visualization-module)
+  - [perception_node](#perception_node)
+- [Data Flow](#data-flow)
+- [Parameter Source of Truth](#parameter-source-of-truth)
+- [Why This Separation Helps](#why-this-separation-helps)
+
 ## Design Principles
 
 1. Keep business logic independent from ROS interfaces.

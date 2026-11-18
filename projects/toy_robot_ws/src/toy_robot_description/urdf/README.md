@@ -2,6 +2,17 @@
 
 This folder contains the modular robot description for toy_robot_description.
 
+## Table of Contents
+
+- [Files](#files)
+- [Include Order](#include-order)
+- [Parameter Dependencies](#parameter-dependencies)
+- [How To Modify Geometry Safely](#how-to-modify-geometry-safely)
+- [Build and Launch](#build-and-launch)
+  - [RViz visualization](#rviz-visualization)
+  - [Gazebo simulation](#gazebo-simulation)
+- [Notes](#notes)
+
 ## Files
 
 - dimensions.xacro: single source of truth for shared dimensions, offsets, and masses.

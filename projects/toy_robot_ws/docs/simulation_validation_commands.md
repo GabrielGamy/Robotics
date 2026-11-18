@@ -2,6 +2,18 @@
 
 This guide is a quick reference for the commands used to validate the robot in Gazebo and RViz.
 
+## Table of Contents
+
+- [0) Workspace Setup](#0-workspace-setup)
+- [1) Launch Simulation](#1-launch-simulation)
+- [2) Motion Check (/cmd_vel)](#2-motion-check-cmd_vel)
+- [3) Odometry Check (/odom)](#3-odometry-check-odom)
+- [4) TF Check](#4-tf-check)
+- [5) Camera Check](#5-camera-check)
+- [6) Keyboard Teleop](#6-keyboard-teleop)
+- [7) Typical Validation Order](#7-typical-validation-order)
+- [8) Quick Troubleshooting Notes](#8-quick-troubleshooting-notes)
+
 ## 0) Workspace Setup
 
 Use in each new terminal:

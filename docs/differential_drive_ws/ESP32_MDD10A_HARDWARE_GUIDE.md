@@ -1,5 +1,36 @@
 # ESP32 + Cytron MDD10A Hardware Guide
 
+## Table of Contents
+
+- [Differential Drive Robot — Low-Level Control Architecture](#differential-drive-robot--low-level-control-architecture)
+- [1. Architecture Overview](#1-architecture-overview)
+  - [Responsibilities](#responsibilities)
+- [2. ESP32](#2-esp32)
+  - [2.1 Board used in this robot](#21-board-used-in-this-robot)
+  - [2.2 Firmware development workflow](#22-firmware-development-workflow)
+  - [2.3 Serial communication](#23-serial-communication)
+- [3. ESP32 GPIO Fundamentals](#3-esp32-gpio-fundamentals)
+  - [3.1 PWM](#31-pwm)
+- [4. ESP32 Terminal Breakout Board](#4-esp32-terminal-breakout-board)
+- [5. Cytron MDD10A Rev 2.0](#5-cytron-mdd10a-rev-20)
+  - [5.1 Power and motor terminals](#51-power-and-motor-terminals)
+  - [5.2 Control interface](#52-control-interface)
+    - [PWM](#pwm)
+    - [DIR](#dir)
+    - [GND](#gnd)
+- [6. GPIO Mapping — v1](#6-gpio-mapping--v1)
+  - [6.1 ESP32 -> MDD10A](#61-esp32---mdd10a)
+  - [6.2 Motor encoders -> ESP32](#62-motor-encoders---esp32)
+    - [Proposed v1 mapping](#proposed-v1-mapping)
+- [7. BNO055 IMU — Proposed Mapping](#7-bno055-imu--proposed-mapping)
+- [8. GPIO Allocation Summary](#8-gpio-allocation-summary)
+- [9. Complete Low-Level Data Flow](#9-complete-low-level-data-flow)
+- [10. What Is Validated vs. Still To Verify](#10-what-is-validated-vs-still-to-verify)
+  - [Validated](#validated)
+  - [Must still be verified before electrical connection](#must-still-be-verified-before-electrical-connection)
+- [11. Bring-Up Order](#11-bring-up-order)
+  - [Key Principle](#key-principle)
+
 ## Differential Drive Robot — Low-Level Control Architecture
 
 This document records the low-level electronics architecture learned and selected for the physical differential-drive robot.

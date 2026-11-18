@@ -2,6 +2,16 @@
 
 This guide explains how to visualize target and goal markers in RViz.
 
+## Table of Contents
+
+- [Purpose](#purpose)
+- [Published Marker Semantics](#published-marker-semantics)
+- [Prerequisites](#prerequisites)
+- [RViz Setup](#rviz-setup)
+- [Parameters for Visualization](#parameters-for-visualization)
+- [Typical Debug Checks](#typical-debug-checks)
+- [Common Issues](#common-issues)
+
 ## Purpose
 
 The RViz markers help validate:

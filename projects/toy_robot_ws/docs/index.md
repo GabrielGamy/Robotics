@@ -2,6 +2,10 @@
 
 Use this folder for detailed project documentation.
 
+## Table of Contents
+
+- [Guides](#guides)
+
 ## Guides
 
 1. `docs/development.md`: build, launch, run, and test commands.

@@ -11,6 +11,12 @@ Workspace:
 - `src/` contains source packages.
 - `build/`, `install/`, and `log/` are local artifacts and should not be committed.
 
+## Table of Contents
+
+- [Build and Run](#build-and-run)
+- [Teleop](#teleop)
+- [Notes](#notes)
+
 ## Build and Run
 
 ```bash

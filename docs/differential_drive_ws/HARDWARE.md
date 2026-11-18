@@ -14,13 +14,19 @@ chassis, two **65 mm wheels with encoder-equipped motors**, and a **1-inch swive
 
 ## Table of Contents
 
+- [Hardware Concept](#hardware-concept)
 - [Hardware Architecture](#hardware-architecture)
 - [Components](#components)
 - [Power](#power)
+  - [Power Checks Before Connection](#power-checks-before-connection)
 - [Drive System](#drive-system)
 - [Sensors](#sensors)
+  - [RPLIDAR C1](#rplidar-c1)
+  - [BNO055](#bno055)
+  - [Arducam IMX219](#arducam-imx219)
 - [ROS 2 Data Flow](#ros-2-data-flow)
 - [Physical Layout](#physical-layout)
+  - [Simulation Appearance](#simulation-appearance)
 - [Software Mapping](#software-mapping)
 - [Physical Bring-Up Order](#physical-bring-up-order)
 - [Notes](#notes)

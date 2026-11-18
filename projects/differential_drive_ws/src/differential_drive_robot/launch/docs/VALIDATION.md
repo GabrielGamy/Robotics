@@ -2,6 +2,20 @@
 
 Use this checklist after changes to launch files, URDF, bridge mappings, or plugins.
 
+## Table of Contents
+
+- [1. Build](#1-build)
+- [2. Start Simulation](#2-start-simulation)
+- [3. Check Core Topics](#3-check-core-topics)
+- [4. Drive the Robot](#4-drive-the-robot)
+- [5. Verify Odometry and Joint States](#5-verify-odometry-and-joint-states)
+- [6. Verify TF Tree](#6-verify-tf-tree)
+- [7. Verify IMU Bridge](#7-verify-imu-bridge)
+- [8. Verify LiDAR Bridge](#8-verify-lidar-bridge)
+- [9. LiDAR Tuning Pass (Balanced Profile)](#9-lidar-tuning-pass-balanced-profile)
+- [10. LiDAR Profile Comparison (Balanced vs Light)](#10-lidar-profile-comparison-balanced-vs-light)
+- [Pass Criteria](#pass-criteria)
+
 ## 1. Build
 
 ```bash

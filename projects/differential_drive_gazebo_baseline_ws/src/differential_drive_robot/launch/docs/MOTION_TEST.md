@@ -2,6 +2,15 @@
 
 Use these tests to validate `cmd_vel` behavior, wheel motion, and odometry consistency.
 
+## Table of Contents
+
+- [Prerequisites](#prerequisites)
+- [Test 1: Forward Motion (3s)](#test-1-forward-motion-3s)
+- [Test 2: In-Place Rotation (3s)](#test-2-in-place-rotation-3s)
+- [Test 3: Arc Trajectory (4s)](#test-3-arc-trajectory-4s)
+- [Optional Quick Health Checks](#optional-quick-health-checks)
+- [Pass Criteria](#pass-criteria)
+
 ## Prerequisites
 
 Terminal A (simulation):

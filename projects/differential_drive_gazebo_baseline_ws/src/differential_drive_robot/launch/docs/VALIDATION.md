@@ -2,6 +2,16 @@
 
 Use this checklist after changes to launch files, URDF, bridge mappings, or plugins.
 
+## Table of Contents
+
+- [1. Build](#1-build)
+- [2. Start Simulation](#2-start-simulation)
+- [3. Check Core Topics](#3-check-core-topics)
+- [4. Drive the Robot](#4-drive-the-robot)
+- [5. Verify Odometry and Joint States](#5-verify-odometry-and-joint-states)
+- [6. Verify TF Tree](#6-verify-tf-tree)
+- [Pass Criteria](#pass-criteria)
+
 ## 1. Build
 
 ```bash
